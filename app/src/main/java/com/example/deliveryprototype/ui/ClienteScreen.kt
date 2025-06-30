@@ -1,5 +1,6 @@
 package com.example.deliveryprototype.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -269,7 +270,8 @@ fun ClienteTiendasScreenNav(onTiendaClick: (TiendaEntity) -> Unit) {
 fun ClienteProductosScreen(
     tienda: com.example.deliveryprototype.model.TiendaEntity,
     onComprar: (List<Pair<ProductoEntity, Int>>) -> Unit,
-    onProductoDetalle: (Int) -> Unit
+    onProductoDetalle: (Int) -> Unit,
+    onBack: () -> Unit
 ) {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
@@ -291,7 +293,11 @@ fun ClienteProductosScreen(
         total = productos.sumOf { (cantidades[it.id] ?: 0) * it.precio }
     }
 
+    BackHandler(onBack = onBack)
+
     Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
+        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { Text("Volver") }
+        Spacer(Modifier.height(12.dp))
         // Header
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = GrayBackground)) {
             Column(Modifier.padding(8.dp)) {

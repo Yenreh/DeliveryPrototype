@@ -1,5 +1,6 @@
 package com.example.deliveryprototype.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Assignment
@@ -79,9 +80,14 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            when {
-                productoDetalleId != null -> ClienteProductoDetalleScreen(productoId = productoDetalleId!!, onBack = { productoDetalleId = null })
-                pedidoDetalleId != null -> ClientePedidoDetalleScreen(pedidoId = pedidoDetalleId!!, onBack = { pedidoDetalleId = null })
+            // Manejo de back para detalles de producto y pedido
+            if (productoDetalleId != null) {
+                BackHandler { productoDetalleId = null }
+                ClienteProductoDetalleScreen(productoId = productoDetalleId!!, onBack = { productoDetalleId = null })
+            } else if (pedidoDetalleId != null) {
+                BackHandler { pedidoDetalleId = null }
+                ClientePedidoDetalleScreen(pedidoId = pedidoDetalleId!!, onBack = { pedidoDetalleId = null })
+            } else when {
                 mostrarProductos && tiendaSeleccionada != null ->
                     ClienteProductosScreen(
                         tienda = tiendaSeleccionada!!,
@@ -89,7 +95,8 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
                             productosSeleccionados = seleccionados
                             mostrarProductos = false
                         },
-                        onProductoDetalle = { productoId -> productoDetalleId = productoId }
+                        onProductoDetalle = { productoId -> productoDetalleId = productoId },
+                        onBack = { mostrarProductos = false }
                     )
                 selectedIndex == 0 -> ClienteTiendasScreenNav(onTiendaClick = { tienda ->
                     tiendaSeleccionada = tienda
