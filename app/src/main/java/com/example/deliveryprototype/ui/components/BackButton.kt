@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun BackButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier.wrapContentSize(Alignment.Start)
+    modifier: Modifier = Modifier.wrapContentSize()
 ) {
     Button(
         onClick = onClick,
