@@ -26,6 +26,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import com.example.deliveryprototype.ui.components.LogoutButton
+import com.example.deliveryprototype.ui.components.AppTopBar
 
 sealed class ClienteNavItem(val label: String, val icon: ImageVector) {
     object Tiendas : ClienteNavItem("Tiendas", Icons.Filled.Storefront)
@@ -50,12 +52,10 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Panel Cliente") },
+            AppTopBar(
+                title = "Panel Cliente",
                 actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Filled.Logout, contentDescription = "Cerrar sesión")
-                    }
+                    LogoutButton(onClick = onLogout)
                 }
             )
         },

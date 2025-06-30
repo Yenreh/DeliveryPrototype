@@ -31,9 +31,10 @@ class AppRepository(context: Context) {
             productoDao.insertProducto(ProductoEntity(id = 3, nombre = "Hamburguesa", descripcion = "Hamburguesa especial", precio = 12000.0, stock = 30, tenderoId = 2))
             productoDao.insertProducto(ProductoEntity(id = 4, nombre = "Aspirina", descripcion = "Caja de 20 tabletas", precio = 8000.0, stock = 40, tenderoId = 3))
 
-            // Pedidos
-            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 1, repartidorId = 3, productosIds = "1,2", estado = "PENDIENTE", fecha = "2025-06-30 11:00"))
-            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 2, repartidorId = 3, productosIds = "3", estado = "EN_CAMINO", fecha = "2025-06-30 11:10"))
+            // Pedidos con tarifas incluidas
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 1, repartidorId = 3, productosIds = "1,2", estado = "PENDIENTE", fecha = "2025-06-30 11:00", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 2, repartidorId = 3, productosIds = "3", estado = "EN_CAMINO", fecha = "2025-06-30 11:10", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 3, repartidorId = 3, productosIds = "4", estado = "ENTREGADO", fecha = "2025-06-30 10:30", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
         }
     }
 
