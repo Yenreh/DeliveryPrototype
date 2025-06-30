@@ -414,6 +414,7 @@ fun ClienteProductosScreen(
             }
         }
         Spacer(Modifier.height(8.dp))
+        val hasSelectedProducts = cantidades.values.any { it > 0 }
         Button(
             onClick = {
                 val productosSeleccionados = productos.map { it to (cantidades[it.id] ?: 0) }.filter { it.second > 0 }
@@ -438,7 +439,7 @@ fun ClienteProductosScreen(
                 onComprar(productosSeleccionados)
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = total > 0
+            enabled = hasSelectedProducts
         ) {
             Icon(Icons.Filled.ShoppingCart, contentDescription = "Comprar")
             Spacer(Modifier.width(8.dp))
