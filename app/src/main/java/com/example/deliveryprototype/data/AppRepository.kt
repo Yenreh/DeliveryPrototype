@@ -31,11 +31,26 @@ class AppRepository(context: Context) {
             productoDao.insertProducto(ProductoEntity(id = 3, nombre = "Hamburguesa", descripcion = "Hamburguesa especial", precio = 12000.0, stock = 30, tenderoId = 2))
             productoDao.insertProducto(ProductoEntity(id = 4, nombre = "Aspirina", descripcion = "Caja de 20 tabletas", precio = 8000.0, stock = 40, tenderoId = 3))
 
-            // Pedidos con tarifas incluidas
-            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 1, repartidorId = 3, productosIds = "1,2", estado = "PENDIENTE", fecha = "2025-06-30 11:00", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
-            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 2, repartidorId = 3, productosIds = "3", estado = "EN_CAMINO", fecha = "2025-06-30 11:10", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
-            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 3, repartidorId = 3, productosIds = "4", estado = "ENTREGADO", fecha = "2025-06-30 10:30", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
+            // Pedidos con cantidades (formato id:cantidad)
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 1, repartidorId = 3, productosIds = "1:2,2:1", estado = "PENDIENTE", fecha = "2025-06-30 11:00", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 2, repartidorId = 3, productosIds = "3:3", estado = "EN_CAMINO", fecha = "2025-06-30 11:10", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 3, repartidorId = 3, productosIds = "4:1", estado = "ENTREGADO", fecha = "2025-06-30 10:30", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
         }
+    }
+
+    /**
+     * Parsea el string productosIds (formato "id:cantidad,id:cantidad") y devuelve una lista de pares (id, cantidad)
+     */
+    fun parseProductosIds(productosIds: String): List<Pair<Int, Int>> {
+        return productosIds.split(",")
+            .mapNotNull { entry ->
+                val parts = entry.split(":")
+                if (parts.size == 2) {
+                    val id = parts[0].toIntOrNull()
+                    val cantidad = parts[1].toIntOrNull()
+                    if (id != null && cantidad != null) id to cantidad else null
+                } else null
+            }
     }
 
     suspend fun getUserById(id: Int) = userDao.getUserById(id)
