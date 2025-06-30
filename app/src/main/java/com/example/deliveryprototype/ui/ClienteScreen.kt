@@ -164,14 +164,20 @@ fun ClienteHomeScreenNav(loggedInUser: UserEntity) {
         if (pedidos.isEmpty()) {
             Text("No tienes pedidos recientes.")
         } else {
-            pedidos.take(2).forEach { pedido ->
+            pedidos.take(3).forEach { pedido ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
                 ) {
-                    Column(Modifier.padding(8.dp)) {
-                        Text("Pedido #${pedido.id}")
-                        Text("Estado: ${pedido.estado}")
+                    Column(Modifier.padding(12.dp)) {
+                        Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText)
+                        Text("Estado: ${pedido.estado}", color = GrayText, fontSize = 14.sp)
+                        Text("Fecha: ${pedido.fecha}", color = GrayText, fontSize = 12.sp)
+                        if (pedido.tarifaEnvio > 0 || pedido.tarifaServicio > 0) {
+                            val subtotalEstimado = 5000.0 // Placeholder estimado
+                            val total = subtotalEstimado + pedido.tarifaEnvio + pedido.tarifaServicio
+                            Text("Total: ${FeeUtils.formatMoney(total)}", color = Primary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
             }
@@ -306,7 +312,7 @@ fun ClienteProductosScreen(
     BackHandler(onBack = onBack)
 
     Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
-        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { Text("Volver") }
+        BackButton(onClick = onBack, modifier = Modifier.align(Alignment.Start))
         Spacer(Modifier.height(12.dp))
         // Header
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = GrayBackground)) {
