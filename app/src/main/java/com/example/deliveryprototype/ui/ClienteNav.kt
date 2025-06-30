@@ -44,6 +44,8 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
     var tiendaSeleccionada by remember { mutableStateOf<com.example.deliveryprototype.model.TiendaEntity?>(null) }
     var mostrarProductos by remember { mutableStateOf(false) }
     var productosSeleccionados by remember { mutableStateOf<List<Pair<com.example.deliveryprototype.model.ProductoEntity, Int>>>(emptyList()) }
+    var pedidoDetalleId by remember { mutableStateOf<Int?>(null) }
+    var productoDetalleId by remember { mutableStateOf<Int?>(null) }
 
     Scaffold(
         topBar = {
@@ -74,17 +76,26 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when {
+                productoDetalleId != null -> ClienteProductoDetalleScreen(productoId = productoDetalleId!!, onBack = { productoDetalleId = null })
+                pedidoDetalleId != null -> ClientePedidoDetalleScreen(pedidoId = pedidoDetalleId!!, onBack = { pedidoDetalleId = null })
                 mostrarProductos && tiendaSeleccionada != null ->
-                    ClienteProductosScreen(tienda = tiendaSeleccionada!!) { seleccionados ->
-                        productosSeleccionados = seleccionados
-                        mostrarProductos = false
-                    }
+                    ClienteProductosScreen(
+                        tienda = tiendaSeleccionada!!,
+                        onComprar = { seleccionados ->
+                            productosSeleccionados = seleccionados
+                            mostrarProductos = false
+                        },
+                        onProductoDetalle = { productoId -> productoDetalleId = productoId }
+                    )
                 selectedIndex == 0 -> ClienteTiendasScreenNav(onTiendaClick = { tienda ->
                     tiendaSeleccionada = tienda
                     mostrarProductos = true
                 })
                 selectedIndex == 1 -> ClienteHomeScreenNav(loggedInUser = loggedInUser)
-                selectedIndex == 2 -> ClientePedidosScreen(loggedInUser = loggedInUser)
+                selectedIndex == 2 -> ClientePedidosScreen(
+                    loggedInUser = loggedInUser,
+                    onPedidoDetalle = { pedidoId -> pedidoDetalleId = pedidoId }
+                )
             }
         }
     }

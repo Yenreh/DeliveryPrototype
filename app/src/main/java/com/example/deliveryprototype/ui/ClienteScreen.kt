@@ -198,6 +198,7 @@ fun ClienteTiendasScreenNav(onTiendaClick: (TiendaEntity) -> Unit) {
     var tiendas by remember { mutableStateOf<List<TiendaEntity>>(emptyList()) }
     val scope = rememberCoroutineScope()
     var isLoaded by remember { mutableStateOf(false) }
+    var searchText by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         if (!isLoaded) {
@@ -216,13 +217,25 @@ fun ClienteTiendasScreenNav(onTiendaClick: (TiendaEntity) -> Unit) {
         ) {
             Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(32.dp), tint = Primary)
             Spacer(Modifier.width(8.dp))
-            Text("Texto de búsqueda", fontWeight = FontWeight.Medium, color = BlackText)
+            TextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                placeholder = { Text("Texto de búsqueda", color = GrayText) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Primary,
+                    unfocusedIndicatorColor = GraySurface,
+                    cursorColor = Primary
+                )
+            )
         }
         Spacer(Modifier.height(8.dp))
-        Text("Tiendas", fontWeight = FontWeight.Medium)
+        Text("Tiendas", fontWeight = FontWeight.Medium, color = BlackText)
         Spacer(Modifier.height(8.dp))
+        val filteredTiendas = tiendas.filter { it.nombre.contains(searchText, ignoreCase = true) }
         LazyColumn {
-            items(tiendas) { tienda ->
+            items(filteredTiendas) { tienda ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onTiendaClick(tienda) },
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
@@ -249,13 +262,19 @@ fun ClienteTiendasScreenNav(onTiendaClick: (TiendaEntity) -> Unit) {
 }
 
 @Composable
-fun ClienteProductosScreen(tienda: com.example.deliveryprototype.model.TiendaEntity, onComprar: (List<Pair<ProductoEntity, Int>>) -> Unit) {
+fun ClienteProductosScreen(
+    tienda: com.example.deliveryprototype.model.TiendaEntity,
+    onComprar: (List<Pair<ProductoEntity, Int>>) -> Unit,
+    onProductoDetalle: (Int) -> Unit
+) {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
     var productos by remember { mutableStateOf<List<ProductoEntity>>(emptyList()) }
     val cantidades = remember { mutableStateMapOf<Int, Int>() }
     var isLoaded by remember { mutableStateOf(false) }
     var total by remember { mutableStateOf(0.0) }
+    var searchText by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(tienda.id) {
         if (!isLoaded) {
@@ -284,13 +303,25 @@ fun ClienteProductosScreen(tienda: com.example.deliveryprototype.model.TiendaEnt
         ) {
             Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(32.dp), tint = Primary)
             Spacer(Modifier.width(8.dp))
-            Text("Texto de búsqueda", fontWeight = FontWeight.Medium, color = BlackText)
+            TextField(
+                value = searchText,
+                onValueChange = { searchText = it },
+                placeholder = { Text("Texto de búsqueda", color = GrayText) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Primary,
+                    unfocusedIndicatorColor = GraySurface,
+                    cursorColor = Primary
+                )
+            )
         }
         Spacer(Modifier.height(12.dp))
-        Text("Productos", fontWeight = FontWeight.Medium)
+        Text("Productos", fontWeight = FontWeight.Medium, color = BlackText)
         Spacer(Modifier.height(8.dp))
+        val filteredProductos = productos.filter { it.nombre.contains(searchText, ignoreCase = true) }
         Column(Modifier.fillMaxWidth()) {
-            productos.forEach { producto ->
+            filteredProductos.forEach { producto ->
                 Card(
                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
@@ -302,8 +333,8 @@ fun ClienteProductosScreen(tienda: com.example.deliveryprototype.model.TiendaEnt
                         Icon(Icons.Filled.Shop, contentDescription = "Producto", modifier = Modifier.size(40.dp))
                         Spacer(Modifier.width(8.dp))
                         Column(Modifier.weight(1f)) {
-                            Text(producto.nombre, fontWeight = FontWeight.Bold)
-                            Text("${producto.precio} $", fontSize = 14.sp)
+                            Text(producto.nombre, fontWeight = FontWeight.Bold, color = BlackText)
+                            Text("${producto.precio} $", fontSize = 14.sp, color = GrayText)
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             IconButton(onClick = {
@@ -320,6 +351,9 @@ fun ClienteProductosScreen(tienda: com.example.deliveryprototype.model.TiendaEnt
                                 Icon(Icons.Filled.Add, contentDescription = "Agregar")
                             }
                         }
+                        IconButton(onClick = { onProductoDetalle(producto.id) }) {
+                            Icon(Icons.Filled.Search, contentDescription = "Detalles producto")
+                        }
                     }
                 }
             }
@@ -328,7 +362,24 @@ fun ClienteProductosScreen(tienda: com.example.deliveryprototype.model.TiendaEnt
         Text("Total de la compra    $ ${"%.2f".format(total)}", fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(8.dp))
         Button(
-            onClick = { onComprar(productos.map { it to (cantidades[it.id] ?: 0) }.filter { it.second > 0 }) },
+            onClick = {
+                val productosSeleccionados = productos.map { it to (cantidades[it.id] ?: 0) }.filter { it.second > 0 }
+                if (productosSeleccionados.isNotEmpty()) {
+                    // Crear pedido en un hilo de corrutina
+                    scope.launch {
+                        val pedido = PedidoEntity(
+                            clienteId = 2, // TODO: usar el id real del usuario logueado
+                            tenderoId = tienda.id,
+                            repartidorId = 3,
+                            productosIds = productosSeleccionados.joinToString(",") { it.first.id.toString() },
+                            estado = "PENDIENTE",
+                            fecha = java.time.LocalDateTime.now().toString()
+                        )
+                        repository.db.pedidoDao().insertPedido(pedido)
+                    }
+                }
+                onComprar(productosSeleccionados)
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(Icons.Filled.Shop, contentDescription = "Comprar")
@@ -339,7 +390,7 @@ fun ClienteProductosScreen(tienda: com.example.deliveryprototype.model.TiendaEnt
 }
 
 @Composable
-fun ClientePedidoDetalleScreen(pedidoId: Int) {
+fun ClientePedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
     var pedido by remember { mutableStateOf<PedidoEntity?>(null) }
@@ -354,7 +405,6 @@ fun ClientePedidoDetalleScreen(pedidoId: Int) {
             tienda = repository.db.tiendaDao().getTiendaById(it.tenderoId)
             val ids = it.productosIds.split(",").mapNotNull { s -> s.toIntOrNull() }
             productos = ids.mapNotNull { id -> repository.db.productoDao().getProductoById(id) }
-            // Para el prototipo, cantidades dummy (1 por producto)
             cantidades = ids.groupingBy { it }.eachCount()
         }
     }
@@ -366,7 +416,9 @@ fun ClientePedidoDetalleScreen(pedidoId: Int) {
         return
     }
 
-    Column(Modifier.fillMaxSize().padding(16.dp)) {
+    Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
+        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { Text("Volver") }
+        Spacer(Modifier.height(8.dp))
         // Header
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = GrayBackground)) {
             Column(Modifier.padding(8.dp)) {
@@ -424,7 +476,7 @@ fun ClientePedidoDetalleScreen(pedidoId: Int) {
 }
 
 @Composable
-fun ClientePedidosScreen(loggedInUser: UserEntity) {
+fun ClientePedidosScreen(loggedInUser: UserEntity, onPedidoDetalle: (Int) -> Unit) {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
     var pedidos by remember { mutableStateOf<List<PedidoEntity>>(emptyList()) }
@@ -450,9 +502,48 @@ fun ClientePedidosScreen(loggedInUser: UserEntity) {
                             Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText)
                             Text("Estado: ${pedido.estado}", color = BlackText)
                             Text("Fecha: ${pedido.fecha}", color = GrayText)
+                            Spacer(Modifier.height(4.dp))
+                            Button(
+                                onClick = { onPedidoDetalle(pedido.id) },
+                                modifier = Modifier.align(Alignment.End),
+                                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = Color.White),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                            ) {
+                                Text("Detalles")
+                            }
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ClienteProductoDetalleScreen(productoId: Int, onBack: () -> Unit) {
+    val context = LocalContext.current
+    val repository = remember { AppRepository(context) }
+    var producto by remember { mutableStateOf<ProductoEntity?>(null) }
+    LaunchedEffect(productoId) {
+        producto = repository.db.productoDao().getProductoById(productoId)
+    }
+    if (producto == null) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+    Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
+        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { Text("Volver") }
+        Spacer(Modifier.height(8.dp))
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = GrayBackground)) {
+            Column(Modifier.padding(16.dp)) {
+                Icon(Icons.Filled.Shop, contentDescription = "Producto", modifier = Modifier.size(64.dp))
+                Spacer(Modifier.height(8.dp))
+                Text(producto!!.nombre, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = BlackText)
+                Text(producto!!.descripcion, color = GrayText)
+                Text("Precio: $${producto!!.precio}", color = BlackText)
+                Text("Stock: ${producto!!.stock}", color = GrayText)
             }
         }
     }
