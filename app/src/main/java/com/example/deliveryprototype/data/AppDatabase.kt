@@ -8,7 +8,7 @@ import com.example.deliveryprototype.model.*
 
 @Database(
     entities = [UserEntity::class, ProductoEntity::class, TiendaEntity::class, PedidoEntity::class],
-    version = 2 // Incrementado por cambio de schema (se agregó 'fecha' a PedidoEntity)
+    version = 3 // Incrementado por agregar tarifaEnvio y tarifaServicio a PedidoEntity
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
@@ -26,7 +26,8 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "app_database"
-                ).build()
+                ).fallbackToDestructiveMigration() // Para prototipo, recrear DB en cambio de schema
+                .build()
                 INSTANCE = instance
                 instance
             }

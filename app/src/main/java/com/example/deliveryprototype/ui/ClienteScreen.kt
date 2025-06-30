@@ -41,6 +41,8 @@ import com.example.deliveryprototype.ui.theme.GrayBar
 import com.example.deliveryprototype.ui.theme.BlackText
 import com.example.deliveryprototype.ui.theme.Primary
 import com.example.deliveryprototype.ui.theme.GrayText
+import com.example.deliveryprototype.ui.components.BackButton
+import com.example.deliveryprototype.utils.FeeUtils
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -215,25 +217,33 @@ fun ClienteTiendasScreenNav(onTiendaClick: (TiendaEntity) -> Unit) {
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Text("Tiendas", style = MaterialTheme.typography.titleLarge, color = BlackText)
         Spacer(Modifier.height(8.dp))
-        // Buscador
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().background(GrayBar, shape = MaterialTheme.shapes.medium).padding(8.dp)
+        // Buscador mejorado
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)
         ) {
-            Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(32.dp), tint = Primary)
-            Spacer(Modifier.width(8.dp))
-            TextField(
-                value = searchText,
-                onValueChange = { searchText = it },
-                placeholder = { Text("Texto de búsqueda", color = GrayText) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Primary,
-                    unfocusedIndicatorColor = GraySurface,
-                    cursorColor = Primary
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(12.dp)
+            ) {
+                Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(24.dp), tint = Primary)
+                Spacer(Modifier.width(12.dp))
+                TextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    placeholder = { Text("Buscar tiendas...", color = GrayText) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Primary,
+                        unfocusedIndicatorColor = GraySurface,
+                        cursorColor = Primary,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    )
                 )
-            )
+            }
         }
         Spacer(Modifier.height(8.dp))
         Text("Tiendas", fontWeight = FontWeight.Medium, color = BlackText)
@@ -306,25 +316,33 @@ fun ClienteProductosScreen(
             }
         }
         Spacer(Modifier.height(12.dp))
-        // Buscador
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().background(GrayBar, shape = MaterialTheme.shapes.medium).padding(8.dp)
+        // Buscador mejorado
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(2.dp)
         ) {
-            Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(32.dp), tint = Primary)
-            Spacer(Modifier.width(8.dp))
-            TextField(
-                value = searchText,
-                onValueChange = { searchText = it },
-                placeholder = { Text("Texto de búsqueda", color = GrayText) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Primary,
-                    unfocusedIndicatorColor = GraySurface,
-                    cursorColor = Primary
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(12.dp)
+            ) {
+                Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(24.dp), tint = Primary)
+                Spacer(Modifier.width(12.dp))
+                TextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    placeholder = { Text("Buscar productos...", color = GrayText) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Primary,
+                        unfocusedIndicatorColor = GraySurface,
+                        cursorColor = Primary,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    )
                 )
-            )
+            }
         }
         Spacer(Modifier.height(12.dp))
         Text("Productos", fontWeight = FontWeight.Medium, color = BlackText)
@@ -369,21 +387,57 @@ fun ClienteProductosScreen(
             }
         }
         Spacer(Modifier.height(12.dp))
-        Text("Total de la compra    $ ${"%.2f".format(total)}", fontWeight = FontWeight.Bold)
+        
+        // Resumen de compra con tarifas
+        val subtotal = total
+        val deliveryFee = FeeUtils.calculateDeliveryFee()
+        val serviceFee = FeeUtils.calculateServiceFee()
+        val grandTotal = subtotal + deliveryFee + serviceFee
+        
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Resumen de compra", fontWeight = FontWeight.Bold, color = BlackText, fontSize = 16.sp)
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Subtotal", color = BlackText)
+                    Text(FeeUtils.formatMoney(subtotal), color = BlackText)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Envío", color = GrayText)
+                    Text(FeeUtils.formatMoney(deliveryFee), color = GrayText)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Servicio", color = GrayText)
+                    Text(FeeUtils.formatMoney(serviceFee), color = GrayText)
+                }
+                Spacer(Modifier.height(8.dp))
+                Divider(color = GraySurface)
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Total", fontWeight = FontWeight.Bold, color = BlackText)
+                    Text(FeeUtils.formatMoney(grandTotal), fontWeight = FontWeight.Bold, color = Primary)
+                }
+            }
+        }
         Spacer(Modifier.height(8.dp))
+        val hasSelectedProducts = cantidades.values.any { it > 0 }
         Button(
             onClick = {
                 val productosSeleccionados = productos.map { it to (cantidades[it.id] ?: 0) }.filter { it.second > 0 }
                 if (productosSeleccionados.isNotEmpty()) {
                     // Crear pedido en un hilo de corrutina
                     scope.launch {
+                        val deliveryFee = FeeUtils.calculateDeliveryFee()
+                        val serviceFee = FeeUtils.calculateServiceFee()
                         val pedido = PedidoEntity(
                             clienteId = 2, // TODO: usar el id real del usuario logueado
                             tenderoId = tienda.id,
                             repartidorId = 3,
                             productosIds = productosSeleccionados.joinToString(",") { it.first.id.toString() },
                             estado = "PENDIENTE",
-                            fecha = java.time.LocalDateTime.now().toString()
+                            fecha = java.time.LocalDateTime.now().toString(),
+                            tarifaEnvio = deliveryFee,
+                            tarifaServicio = serviceFee
                         )
                         repository.db.pedidoDao().insertPedido(pedido)
                     }
@@ -391,7 +445,7 @@ fun ClienteProductosScreen(
                 onComprar(productosSeleccionados)
             },
             modifier = Modifier.fillMaxWidth(),
-            enabled = total > 0
+            enabled = hasSelectedProducts
         ) {
             Icon(Icons.Filled.ShoppingCart, contentDescription = "Comprar")
             Spacer(Modifier.width(8.dp))
@@ -428,11 +482,7 @@ fun ClientePedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
     }
 
     Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
-        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { 
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
-            Spacer(Modifier.width(4.dp))
-            Text("Volver") 
-        }
+        BackButton(onClick = onBack, modifier = Modifier.align(Alignment.Start))
         Spacer(Modifier.height(8.dp))
         // Header
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
@@ -476,22 +526,23 @@ fun ClientePedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 Divider(color = GraySurface)
                 Spacer(Modifier.height(8.dp))
-                // Tarifas dummy
+                // Tarifas desde la base de datos
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Tarifa de domicilio", color = GrayText)
-                    Text("$ 3.000,00", color = GrayText)
+                    Text(FeeUtils.formatMoney(pedido!!.tarifaEnvio), color = GrayText)
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Tarifa de servicio", color = GrayText)
-                    Text("$ 1.000,00", color = GrayText)
+                    Text(FeeUtils.formatMoney(pedido!!.tarifaServicio), color = GrayText)
                 }
                 Spacer(Modifier.height(8.dp))
                 Divider(color = GraySurface)
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Total de la compra", fontWeight = FontWeight.Bold, color = BlackText)
-                    val total = productos.sumOf { (cantidades[it.id] ?: 1) * it.precio } + 3000 + 1000
-                    Text("$ ${"%.2f".format(total)}", fontWeight = FontWeight.Bold, color = Primary)
+                    val subtotal = productos.sumOf { (cantidades[it.id] ?: 1) * it.precio }
+                    val total = subtotal + pedido!!.tarifaEnvio + pedido!!.tarifaServicio
+                    Text(FeeUtils.formatMoney(total), fontWeight = FontWeight.Bold, color = Primary)
                 }
             }
         }
@@ -595,11 +646,7 @@ fun ClienteProductoDetalleScreen(productoId: Int, onBack: () -> Unit) {
         return
     }
     Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
-        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { 
-            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
-            Spacer(Modifier.width(4.dp))
-            Text("Volver") 
-        }
+        BackButton(onClick = onBack, modifier = Modifier.align(Alignment.Start))
         Spacer(Modifier.height(16.dp))
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
             Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
