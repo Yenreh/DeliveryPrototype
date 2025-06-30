@@ -2,9 +2,9 @@ package com.example.deliveryprototype.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Shop
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -27,9 +27,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
 sealed class ClienteNavItem(val label: String, val icon: ImageVector) {
-    object Tiendas : ClienteNavItem("Tiendas", Icons.Filled.Shop)
+    object Tiendas : ClienteNavItem("Tiendas", Icons.Filled.Storefront)
     object Home : ClienteNavItem("Inicio", Icons.Filled.Home)
-    object Pedidos : ClienteNavItem("Tus Pedidos", Icons.Filled.List)
+    object Pedidos : ClienteNavItem("Tus Pedidos", Icons.Filled.Assignment)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +65,11 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
                         selected = selectedIndex == index,
                         onClick = {
                             selectedIndex = index
-                            mostrarProductos = false
+                            // Only reset product view state, preserve other navigation state
+                            if (mostrarProductos) mostrarProductos = false
+                            // Reset detail views when switching main tabs
+                            if (pedidoDetalleId != null) pedidoDetalleId = null
+                            if (productoDetalleId != null) productoDetalleId = null
                         },
                         icon = { Icon(item.icon, contentDescription = item.label) },
                         label = { Text(item.label) }
