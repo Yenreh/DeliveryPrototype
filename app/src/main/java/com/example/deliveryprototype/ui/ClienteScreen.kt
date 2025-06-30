@@ -107,75 +107,86 @@ fun ClienteHomeScreenNav(loggedInUser: UserEntity, onPedidoDetalle: (Int) -> Uni
             .fillMaxSize()
             .background(GrayBackground)
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween // <-- Esto pega el contenido al fondo
     ) {
-        // Saludo y dirección
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = GrayBackground)
-        ) {
-            Column(Modifier.padding(8.dp)) {
-                Text("Hola ${loggedInUser.name}", fontWeight = FontWeight.Bold, color = BlackText)
-                Text("Tus pedidos a\n${loggedInUser.address ?: "Sin dirección"}", fontSize = 14.sp, color = GrayText)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            // Saludo y dirección
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = GrayBackground)
+            ) {
+                Column(Modifier.padding(8.dp)) {
+                    Text("Hola ${loggedInUser.name}", fontWeight = FontWeight.Bold, color = BlackText)
+                    Text("Tus pedidos a\n${loggedInUser.address ?: "Sin dirección"}", fontSize = 14.sp, color = GrayText)
+                }
             }
-        }
-        Spacer(Modifier.height(12.dp))
-        // Buscador
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(GrayBar, shape = MaterialTheme.shapes.medium)
-                .padding(8.dp)
-        ) {
-            Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(32.dp), tint = Primary)
-            Spacer(Modifier.width(8.dp))
-            Text("¿Qué necesitas hoy?", fontWeight = FontWeight.Medium, color = BlackText)
-        }
-        Spacer(Modifier.height(12.dp))
-        // Carrusel (simulado)
-        LazyRow(
-            modifier = Modifier.fillMaxWidth().height(100.dp)
-        ) {
-            items(listOf("Promo 1", "Promo 2", "Promo 3")) { promo ->
-                Card(
-                    modifier = Modifier.size(180.dp, 100.dp).padding(end = 8.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0))
+            Spacer(Modifier.height(12.dp))
+            // Buscador
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(GrayBar, shape = MaterialTheme.shapes.medium)
+                    .padding(8.dp)
+            ) {
+                Icon(Icons.Filled.Search, contentDescription = "Buscar", modifier = Modifier.size(32.dp), tint = Primary)
+                Spacer(Modifier.width(8.dp))
+                Text("¿Qué necesitas hoy?", fontWeight = FontWeight.Medium, color = BlackText)
+            }
+            Spacer(Modifier.height(12.dp))
+            // Carrusel (simulado)
+            LazyRow(
+                modifier = Modifier.fillMaxWidth().height(170.dp)
+            ) {
+                items(listOf("Promo 1", "Promo 2", "Promo 3")) { promo ->
+                    Card(
+                        modifier = Modifier.size(180.dp, 160.dp).padding(end = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFE0E0E0))
+                    ) {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(promo)
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(20.dp))
+            // Categorías
+            Text("¿Qué buscas?", fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.Start))
+            Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                CategoryButton(icon = Icons.Filled.Restaurant, label = "Restaurantes")
+                CategoryButton(icon = Icons.Filled.LocalGroceryStore, label = "Compras")
+                CategoryButton(icon = Icons.Filled.LocalPharmacy, label = "Farmacias")
+            }
+            Spacer(Modifier.height(16.dp))
+            // Pedidos recientes
+            Text("Tus pedidos recientes", fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.Start))
+            Spacer(Modifier.height(8.dp))
+            if (pedidos.isEmpty()) {
+                Text("No hay pedidos recientes.", color = GrayText)
+            } else {
+                val ultimosPedidos = pedidos.takeLast(4).reversed()
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 300.dp)
                 ) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(promo)
+                    items(ultimosPedidos) { pedido ->
+                        OrderCard(
+                            pedido = pedido,
+                            onCardClick = onPedidoDetalle,
+                            showDetailButton = true,
+                            showApproxTotal = false
+                        )
                     }
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
-        // Categorías
-        Text("¿Qué buscas?", fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.Start))
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            CategoryButton(icon = Icons.Filled.Restaurant, label = "Restaurantes")
-            CategoryButton(icon = Icons.Filled.LocalGroceryStore, label = "Compras")
-            CategoryButton(icon = Icons.Filled.LocalPharmacy, label = "Farmacias")
-        }
-        Spacer(Modifier.height(16.dp))
-        // Pedidos recientes
-        Text("Tus pedidos recientes", fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.Start))
-        Spacer(Modifier.height(8.dp))
-        if (pedidos.isEmpty()) {
-            Text("No hay pedidos recientes.", color = GrayText)
-        } else {
-            pedidos.take(3).forEach { pedido ->
-                OrderCard(
-                    pedido = pedido,
-                    onCardClick = onPedidoDetalle,
-                    showDetailButton = true,
-                    showApproxTotal = false
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(0.dp)) // Elimina espacio extra abajo
     }
 }
 
