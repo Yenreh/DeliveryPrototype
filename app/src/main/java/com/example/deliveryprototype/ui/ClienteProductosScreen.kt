@@ -66,6 +66,7 @@ fun ClienteProductosScreen(tiendaId: Int, onComprar: (List<Pair<ProductoEntity, 
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
+        val hasSelectedProducts = cantidades.values.any { it > 0 }
         Button(
             onClick = {
                 val seleccionados = productos.mapNotNull { p ->
@@ -74,7 +75,8 @@ fun ClienteProductosScreen(tiendaId: Int, onComprar: (List<Pair<ProductoEntity, 
                 }
                 onComprar(seleccionados)
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = hasSelectedProducts
         ) {
             Text("Comprar")
         }
