@@ -92,7 +92,7 @@ fun ClienteScreenContent() {
 }
 
 @Composable
-fun ClienteHomeScreenNav(loggedInUser: UserEntity) {
+fun ClienteHomeScreenNav(loggedInUser: UserEntity, onPedidoDetalle: (Int) -> Unit = {}) {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
     var pedidos by remember { mutableStateOf<List<PedidoEntity>>(emptyList()) }
@@ -165,13 +165,14 @@ fun ClienteHomeScreenNav(loggedInUser: UserEntity) {
         Text("Tus pedidos recientes", fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.Start))
         Spacer(Modifier.height(8.dp))
         if (pedidos.isEmpty()) {
-            Text("No tienes pedidos recientes.")
+            Text("No hay pedidos recientes.", color = GrayText)
         } else {
             pedidos.take(3).forEach { pedido ->
                 OrderCard(
                     pedido = pedido,
-                    showDetailButton = false,
-                    showApproxTotal = true
+                    onCardClick = onPedidoDetalle,
+                    showDetailButton = true,
+                    showApproxTotal = false
                 )
             }
         }
@@ -299,7 +300,7 @@ fun ClienteProductosScreen(
         }
     }
 
-    LaunchedEffect(productos, cantidades) {
+    LaunchedEffect(cantidades.values.sum()) {
         total = OrderCalculationUtils.calculateSubtotal(productos, cantidades)
     }
 
@@ -348,8 +349,12 @@ fun ClienteProductosScreen(
         Text("Productos", fontWeight = FontWeight.Medium, color = BlackText)
         Spacer(Modifier.height(8.dp))
         val filteredProductos = productos.filter { it.nombre.contains(searchText, ignoreCase = true) }
-        Column(Modifier.fillMaxWidth()) {
-            filteredProductos.forEach { producto ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            items(filteredProductos) { producto ->
                 Card(
                     Modifier.fillMaxWidth().padding(vertical = 4.dp),
                     colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))

@@ -102,7 +102,10 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
                     tiendaSeleccionada = tienda
                     mostrarProductos = true
                 })
-                selectedIndex == 1 -> ClienteHomeScreenNav(loggedInUser = loggedInUser)
+                selectedIndex == 1 -> ClienteHomeScreenNav(
+                    loggedInUser = loggedInUser,
+                    onPedidoDetalle = { pedidoId -> pedidoDetalleId = pedidoId }
+                )
                 selectedIndex == 2 -> ClientePedidosScreen(
                     loggedInUser = loggedInUser,
                     onPedidoDetalle = { pedidoId -> pedidoDetalleId = pedidoId }

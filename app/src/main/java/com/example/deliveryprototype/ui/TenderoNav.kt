@@ -12,6 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import com.example.deliveryprototype.data.AppRepository
+import com.example.deliveryprototype.model.PedidoEntity
+import com.example.deliveryprototype.ui.components.OrderCard
+import com.example.deliveryprototype.ui.theme.GrayText
 
 sealed class TenderoNavItem(val label: String, val icon: ImageVector) {
     object Tienda : TenderoNavItem("Tu tienda", Icons.Filled.Shop)
@@ -64,6 +70,15 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
 
 @Composable
 fun TenderoHomeScreen() {
+    val context = LocalContext.current
+    val repository = remember { AppRepository(context) }
+    var pedidos by remember { mutableStateOf<List<PedidoEntity>>(emptyList()) }
+    
+    // Para el prototipo, usar tenderoId = 1
+    LaunchedEffect(Unit) {
+        pedidos = repository.db.pedidoDao().getPedidosByTendero(1)
+    }
+    
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -84,9 +99,20 @@ fun TenderoHomeScreen() {
         Text("Alertas")
         Card(modifier = Modifier.fillMaxWidth().padding(4.dp)) { Box(Modifier.padding(8.dp)) { Text("Quedan pocos productos de ***") } }
         Spacer(modifier = Modifier.height(8.dp))
-        Text("Pedidos")
-        // Aquí iría la lista de pedidos con botón "Ver detalles"
-        Text("[Lista de pedidos]")
+        Text("Pedidos recientes", fontWeight = FontWeight.Medium, modifier = Modifier.align(Alignment.Start))
+        Spacer(modifier = Modifier.height(8.dp))
+        if (pedidos.isEmpty()) {
+            Text("No hay pedidos recientes.", color = GrayText)
+        } else {
+            pedidos.take(3).forEach { pedido ->
+                OrderCard(
+                    pedido = pedido,
+                    onCardClick = { /* TODO: Implementar navegación a detalles */ },
+                    showDetailButton = true,
+                    showApproxTotal = false
+                )
+            }
+        }
     }
 }
 
@@ -105,12 +131,31 @@ fun TenderoTiendaScreen() {
 
 @Composable
 fun TenderoPedidosScreen() {
+    val context = LocalContext.current
+    val repository = remember { AppRepository(context) }
+    var pedidos by remember { mutableStateOf<List<PedidoEntity>>(emptyList()) }
+    
+    // Para el prototipo, usar tenderoId = 1
+    LaunchedEffect(Unit) {
+        pedidos = repository.db.pedidoDao().getPedidosByTendero(1)
+    }
+    
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
         Text("Pedidos", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(8.dp))
-        // Aquí iría la lista de pedidos
-        Text("[Lista de pedidos]")
+        if (pedidos.isEmpty()) {
+            Text("No tienes pedidos.", color = GrayText)
+        } else {
+            pedidos.forEach { pedido ->
+                OrderCard(
+                    pedido = pedido,
+                    onCardClick = { /* TODO: Implementar navegación a detalles */ },
+                    showDetailButton = true,
+                    showApproxTotal = false
+                )
+            }
+        }
     }
 }
