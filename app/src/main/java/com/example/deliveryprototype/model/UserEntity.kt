@@ -10,6 +10,8 @@ data class UserEntity(
     val email: String,
     val password: String,
     val role: String, // "tendero", "cliente", "repartidor"
+    val address: String? = null,
+    val phone: String? = null,
     val storeName: String? = null,
     val vehicle: String? = null
 )

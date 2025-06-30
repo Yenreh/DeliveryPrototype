@@ -8,7 +8,7 @@ import com.example.deliveryprototype.model.*
 
 @Database(
     entities = [UserEntity::class, ProductoEntity::class, TiendaEntity::class, PedidoEntity::class],
-    version = 1
+    version = 2 // Incrementado por cambio de schema (se agregó 'fecha' a PedidoEntity)
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

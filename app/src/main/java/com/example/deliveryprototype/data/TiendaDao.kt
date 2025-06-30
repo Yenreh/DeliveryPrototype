@@ -11,6 +11,9 @@ interface TiendaDao {
     @Query("SELECT * FROM tiendas WHERE tenderoId = :tenderoId")
     suspend fun getTiendasByTendero(tenderoId: Int): List<TiendaEntity>
 
+    @Query("SELECT * FROM tiendas")
+    suspend fun getAllTiendas(): List<TiendaEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTienda(tienda: TiendaEntity): Long
 

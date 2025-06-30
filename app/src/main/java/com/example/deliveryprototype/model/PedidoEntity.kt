@@ -11,5 +11,6 @@ data class PedidoEntity(
     val tenderoId: Int,
     val repartidorId: Int?,
     val productosIds: String, // Lista de IDs serializada (ej: "1,2,3")
-    val estado: String // "PENDIENTE", "EN_CAMINO", etc.
+    val estado: String, // "PENDIENTE", "EN_CAMINO", etc.
+    val fecha: String // Fecha en formato ISO8601 o simple (ej: "2025-06-30 11:30")
 )

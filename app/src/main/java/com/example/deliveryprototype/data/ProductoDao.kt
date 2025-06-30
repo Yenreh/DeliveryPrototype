@@ -11,6 +11,9 @@ interface ProductoDao {
     @Query("SELECT * FROM productos WHERE tenderoId = :tenderoId")
     suspend fun getProductosByTendero(tenderoId: Int): List<ProductoEntity>
 
+    @Query("SELECT * FROM productos WHERE tenderoId = :tenderoId")
+    suspend fun getProductosByTienda(tenderoId: Int): List<ProductoEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertProducto(producto: ProductoEntity): Long
 

@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 
 sealed class ClienteNavItem(val label: String, val icon: ImageVector) {
     object Tiendas : ClienteNavItem("Tiendas", Icons.Filled.Shop)
@@ -32,14 +34,14 @@ sealed class ClienteNavItem(val label: String, val icon: ImageVector) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClienteNavScaffold(onLogout: () -> Unit) {
+fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryprototype.model.UserEntity) {
     var selectedIndex by remember { mutableStateOf(1) }
     val items = listOf(
         ClienteNavItem.Tiendas,
         ClienteNavItem.Home,
         ClienteNavItem.Pedidos
     )
-    var tiendaSeleccionadaId by remember { mutableStateOf<Int?>(null) }
+    var tiendaSeleccionada by remember { mutableStateOf<com.example.deliveryprototype.model.TiendaEntity?>(null) }
     var mostrarProductos by remember { mutableStateOf(false) }
     var productosSeleccionados by remember { mutableStateOf<List<Pair<com.example.deliveryprototype.model.ProductoEntity, Int>>>(emptyList()) }
 
@@ -72,99 +74,18 @@ fun ClienteNavScaffold(onLogout: () -> Unit) {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when {
-                mostrarProductos && tiendaSeleccionadaId != null ->
-                    ClienteProductosScreen(tiendaId = tiendaSeleccionadaId!!) { seleccionados ->
+                mostrarProductos && tiendaSeleccionada != null ->
+                    ClienteProductosScreen(tienda = tiendaSeleccionada!!) { seleccionados ->
                         productosSeleccionados = seleccionados
-                        // Aquí puedes manejar la compra
                         mostrarProductos = false
                     }
-                selectedIndex == 0 -> ClienteTiendasScreen(onTiendaClick = { id ->
-                    tiendaSeleccionadaId = id
+                selectedIndex == 0 -> ClienteTiendasScreenNav(onTiendaClick = { tienda ->
+                    tiendaSeleccionada = tienda
                     mostrarProductos = true
                 })
-                selectedIndex == 1 -> ClienteHomeScreen()
-                selectedIndex == 2 -> ClientePedidosScreen()
+                selectedIndex == 1 -> ClienteHomeScreenNav(loggedInUser = loggedInUser)
+                selectedIndex == 2 -> ClientePedidosScreen(loggedInUser = loggedInUser)
             }
         }
-    }
-}
-
-@Composable
-fun ClienteHomeScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Hola *Nombre del cliente*", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("Tus pedidos a Call XX # XX-XX")
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(value = "", onValueChange = {}, label = { Text("¿Qué necesitas hoy?") }, leadingIcon = { Icon(Icons.Filled.Search, null) })
-        Spacer(modifier = Modifier.height(16.dp))
-        // Aquí iría el carrusel de banners o promociones
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedTextField(value = "", onValueChange = {}, label = { Text("¿Qué buscas?") })
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Button(onClick = { }) { Text("Restaurantes") }
-            Button(onClick = { }) { Text("Compras") }
-            Button(onClick = { }) { Text("Farmacias") }
-        }
-    }
-}
-
-@Composable
-fun ClienteTiendasScreen(onTiendaClick: (Int) -> Unit) {
-    val context = LocalContext.current
-    val repository = remember { AppRepository(context) }
-    val tiendas = remember { mutableStateListOf<TiendaEntity>() }
-    val scope = rememberCoroutineScope()
-    var isLoaded by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        if (!isLoaded) {
-            val list = repository.db.tiendaDao().getTiendasByTendero(1) // Para el prototipo, tenderoId 1
-            tiendas.clear()
-            tiendas.addAll(list)
-            isLoaded = true
-        }
-    }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
-    ) {
-        Text("Tiendas", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-        OutlinedTextField(value = "", onValueChange = {}, label = { Text("Texto de búsqueda") }, leadingIcon = { Icon(Icons.Filled.Search, null) })
-        Spacer(modifier = Modifier.height(8.dp))
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(tiendas) { tienda ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).clickable { onTiendaClick(tienda.id) },
-                    elevation = CardDefaults.cardElevation(2.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(tienda.nombre, style = MaterialTheme.typography.titleMedium)
-                        Text(tienda.direccion)
-                        Text("ID tendero: ${tienda.tenderoId}")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ClientePedidosScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp)
-    ) {
-        Text("Tus Pedidos", style = MaterialTheme.typography.titleLarge)
-        Spacer(modifier = Modifier.height(8.dp))
-        // Aquí iría la lista de pedidos
-        Text("[Lista de pedidos]")
     }
 }
