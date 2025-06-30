@@ -14,7 +14,11 @@ import androidx.compose.material.icons.filled.LocalPharmacy
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Shop
+import androidx.compose.material.icons.filled.Storefront
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -244,7 +248,7 @@ fun ClienteTiendasScreenNav(onTiendaClick: (TiendaEntity) -> Unit) {
                         Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Shop, contentDescription = "Tienda", modifier = Modifier.size(40.dp))
+                        Icon(Icons.Filled.Storefront, contentDescription = "Tienda", modifier = Modifier.size(40.dp))
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f)) {
                             Text(tienda.nombre, fontWeight = FontWeight.Bold)
@@ -330,7 +334,7 @@ fun ClienteProductosScreen(
                         Modifier.padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Filled.Shop, contentDescription = "Producto", modifier = Modifier.size(40.dp))
+                        Icon(Icons.Filled.Storefront, contentDescription = "Producto", modifier = Modifier.size(40.dp))
                         Spacer(Modifier.width(8.dp))
                         Column(Modifier.weight(1f)) {
                             Text(producto.nombre, fontWeight = FontWeight.Bold, color = BlackText)
@@ -352,7 +356,7 @@ fun ClienteProductosScreen(
                             }
                         }
                         IconButton(onClick = { onProductoDetalle(producto.id) }) {
-                            Icon(Icons.Filled.Search, contentDescription = "Detalles producto")
+                            Icon(Icons.Filled.Info, contentDescription = "Detalles producto")
                         }
                     }
                 }
@@ -380,9 +384,10 @@ fun ClienteProductosScreen(
                 }
                 onComprar(productosSeleccionados)
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            enabled = total > 0
         ) {
-            Icon(Icons.Filled.Shop, contentDescription = "Comprar")
+            Icon(Icons.Filled.ShoppingCart, contentDescription = "Comprar")
             Spacer(Modifier.width(8.dp))
             Text("Comprar")
         }
@@ -417,59 +422,97 @@ fun ClientePedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
     }
 
     Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
-        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { Text("Volver") }
+        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { 
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+            Spacer(Modifier.width(4.dp))
+            Text("Volver") 
+        }
         Spacer(Modifier.height(8.dp))
         // Header
-        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = GrayBackground)) {
-            Column(Modifier.padding(8.dp)) {
-                Text("Código-pedido: #${pedido!!.id}", fontWeight = FontWeight.Bold, color = BlackText)
-                Text("Pedido para ${pedido!!.clienteId}", color = BlackText)
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Código-pedido: #${pedido!!.id}", fontWeight = FontWeight.Bold, color = BlackText, fontSize = 18.sp)
+                Spacer(Modifier.height(4.dp))
+                Text("Pedido para usuario #${pedido!!.clienteId}", color = BlackText)
                 Text("Dirección de entrega: ${tienda?.direccion ?: "-"}", color = GrayText)
+                Spacer(Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Shop, contentDescription = "Tienda", modifier = Modifier.size(32.dp), tint = Primary)
+                    Icon(Icons.Filled.Storefront, contentDescription = "Tienda", modifier = Modifier.size(32.dp), tint = Primary)
                     Spacer(Modifier.width(8.dp))
-                    Text("Pedido de ${tienda?.nombre ?: "-"}", color = BlackText)
+                    Text("Pedido de ${tienda?.nombre ?: "-"}", color = BlackText, fontWeight = FontWeight.Medium)
                 }
             }
         }
-        Spacer(Modifier.height(12.dp))
-        Text("ESTADO DEL PEDIDO: ${pedido!!.estado}", fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
+        
+        // Estado del pedido con estilo destacado
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Column(Modifier.padding(16.dp)) {
+                Text("ESTADO DEL PEDIDO", fontWeight = FontWeight.Bold, color = GrayText, fontSize = 12.sp)
+                Text(pedido!!.estado, fontWeight = FontWeight.Bold, color = Primary, fontSize = 16.sp)
+                Text("Fecha: ${pedido!!.fecha}", color = GrayText, fontSize = 12.sp)
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        
         // Valores
-        Text("Valores", fontWeight = FontWeight.Medium)
-        productos.forEach { producto ->
-            val cantidad = cantidades[producto.id] ?: 1
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("${producto.nombre} x $cantidad")
-                Text("$ ${"%.2f".format(producto.precio * cantidad)}")
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Resumen del pedido", fontWeight = FontWeight.Bold, color = BlackText, fontSize = 16.sp)
+                Spacer(Modifier.height(8.dp))
+                productos.forEach { producto ->
+                    val cantidad = cantidades[producto.id] ?: 1
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("${producto.nombre} x $cantidad", color = BlackText)
+                        Text("$ ${"%.2f".format(producto.precio * cantidad)}", color = BlackText)
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
+                Divider(color = GraySurface)
+                Spacer(Modifier.height(8.dp))
+                // Tarifas dummy
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Tarifa de domicilio", color = GrayText)
+                    Text("$ 3.000,00", color = GrayText)
+                }
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Tarifa de servicio", color = GrayText)
+                    Text("$ 1.000,00", color = GrayText)
+                }
+                Spacer(Modifier.height(8.dp))
+                Divider(color = GraySurface)
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("Total de la compra", fontWeight = FontWeight.Bold, color = BlackText)
+                    val total = productos.sumOf { (cantidades[it.id] ?: 1) * it.precio } + 3000 + 1000
+                    Text("$ ${"%.2f".format(total)}", fontWeight = FontWeight.Bold, color = Primary)
+                }
             }
         }
-        // Tarifas dummy
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("tarifa de domicilio")
-            Text("$ 3.000,00")
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("tarifa de servicio")
-            Text("$ 1.000,00")
-        }
-        Divider(Modifier.padding(vertical = 8.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("Total de la compra", fontWeight = FontWeight.Bold)
-            val total = productos.sumOf { (cantidades[it.id] ?: 1) * it.precio } + 3000 + 1000
-            Text("$ ${"%.2f".format(total)}", fontWeight = FontWeight.Bold)
-        }
-        Spacer(Modifier.height(12.dp))
-        // Productos
-        Text("Productos", fontWeight = FontWeight.Medium)
-        productos.forEach { producto ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Shop, contentDescription = "Producto", modifier = Modifier.size(32.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(producto.nombre)
+        Spacer(Modifier.height(16.dp))
+        
+        // Productos detallados
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Column(Modifier.padding(16.dp)) {
+                Text("Productos", fontWeight = FontWeight.Bold, color = BlackText, fontSize = 16.sp)
+                Spacer(Modifier.height(8.dp))
+                productos.forEach { producto ->
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 4.dp), 
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Filled.Storefront, contentDescription = "Producto", modifier = Modifier.size(24.dp), tint = GrayText)
+                            Spacer(Modifier.width(8.dp))
+                            Column {
+                                Text(producto.nombre, fontWeight = FontWeight.Medium, color = BlackText)
+                                Text("$ ${producto.precio}", color = GrayText, fontSize = 12.sp)
+                            }
+                        }
+                        Text("x${cantidades[producto.id] ?: 1}", fontWeight = FontWeight.Bold, color = Primary)
+                    }
                 }
-                Text("${cantidades[producto.id] ?: 1}")
             }
         }
     }
@@ -496,20 +539,32 @@ fun ClientePedidosScreen(loggedInUser: UserEntity, onPedidoDetalle: (Int) -> Uni
                 items(pedidos) { pedido ->
                     Card(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = GrayBackground)
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(2.dp)
                     ) {
-                        Column(Modifier.padding(8.dp)) {
-                            Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText)
-                            Text("Estado: ${pedido.estado}", color = BlackText)
-                            Text("Fecha: ${pedido.fecha}", color = GrayText)
-                            Spacer(Modifier.height(4.dp))
+                        Column(Modifier.padding(16.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText, fontSize = 16.sp)
+                                    Text("Estado: ${pedido.estado}", color = Primary, fontWeight = FontWeight.Medium)
+                                    Text("Fecha: ${pedido.fecha}", color = GrayText, fontSize = 12.sp)
+                                }
+                                Icon(Icons.Filled.Assignment, contentDescription = "Pedido", modifier = Modifier.size(32.dp), tint = GrayText)
+                            }
+                            Spacer(Modifier.height(8.dp))
                             Button(
                                 onClick = { onPedidoDetalle(pedido.id) },
                                 modifier = Modifier.align(Alignment.End),
                                 colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = Color.White),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp)
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                             ) {
-                                Text("Detalles")
+                                Icon(Icons.Filled.Info, contentDescription = "Ver detalles", modifier = Modifier.size(16.dp))
+                                Spacer(Modifier.width(4.dp))
+                                Text("Ver detalles")
                             }
                         }
                     }
@@ -534,16 +589,34 @@ fun ClienteProductoDetalleScreen(productoId: Int, onBack: () -> Unit) {
         return
     }
     Column(Modifier.fillMaxSize().background(GrayBackground).padding(16.dp)) {
-        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { Text("Volver") }
-        Spacer(Modifier.height(8.dp))
-        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = GrayBackground)) {
-            Column(Modifier.padding(16.dp)) {
-                Icon(Icons.Filled.Shop, contentDescription = "Producto", modifier = Modifier.size(64.dp))
+        Button(onClick = onBack, modifier = Modifier.align(Alignment.Start)) { 
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Volver")
+            Spacer(Modifier.width(4.dp))
+            Text("Volver") 
+        }
+        Spacer(Modifier.height(16.dp))
+        Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
+            Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Filled.Storefront, contentDescription = "Producto", modifier = Modifier.size(80.dp), tint = Primary)
+                Spacer(Modifier.height(16.dp))
+                Text(producto!!.nombre, fontWeight = FontWeight.Bold, fontSize = 24.sp, color = BlackText)
                 Spacer(Modifier.height(8.dp))
-                Text(producto!!.nombre, fontWeight = FontWeight.Bold, fontSize = 22.sp, color = BlackText)
-                Text(producto!!.descripcion, color = GrayText)
-                Text("Precio: $${producto!!.precio}", color = BlackText)
-                Text("Stock: ${producto!!.stock}", color = GrayText)
+                Text(producto!!.descripcion, color = GrayText, fontSize = 16.sp)
+                Spacer(Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Precio:", color = GrayText, fontSize = 14.sp)
+                        Text("$${producto!!.precio}", color = BlackText, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    }
+                    Column {
+                        Text("Stock disponible:", color = GrayText, fontSize = 14.sp)
+                        Text("${producto!!.stock} unidades", color = BlackText, fontSize = 16.sp)
+                    }
+                }
             }
         }
     }
