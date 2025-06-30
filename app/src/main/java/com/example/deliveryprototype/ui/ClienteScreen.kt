@@ -42,7 +42,10 @@ import com.example.deliveryprototype.ui.theme.BlackText
 import com.example.deliveryprototype.ui.theme.Primary
 import com.example.deliveryprototype.ui.theme.GrayText
 import com.example.deliveryprototype.ui.components.BackButton
+import com.example.deliveryprototype.ui.components.OrderConfirmationDialog
+import com.example.deliveryprototype.ui.components.OrderCard
 import com.example.deliveryprototype.utils.FeeUtils
+import com.example.deliveryprototype.utils.OrderCalculationUtils
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -165,21 +168,11 @@ fun ClienteHomeScreenNav(loggedInUser: UserEntity) {
             Text("No tienes pedidos recientes.")
         } else {
             pedidos.take(3).forEach { pedido ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText)
-                        Text("Estado: ${pedido.estado}", color = GrayText, fontSize = 14.sp)
-                        Text("Fecha: ${pedido.fecha}", color = GrayText, fontSize = 12.sp)
-                        if (pedido.tarifaEnvio > 0 || pedido.tarifaServicio > 0) {
-                            val subtotalEstimado = 5000.0 // Placeholder estimado
-                            val total = subtotalEstimado + pedido.tarifaEnvio + pedido.tarifaServicio
-                            Text("Total: ${FeeUtils.formatMoney(total)}", color = Primary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        }
-                    }
-                }
+                OrderCard(
+                    pedido = pedido,
+                    showDetailButton = false,
+                    showApproxTotal = true
+                )
             }
         }
     }
@@ -296,6 +289,7 @@ fun ClienteProductosScreen(
     var isLoaded by remember { mutableStateOf(false) }
     var total by remember { mutableStateOf(0.0) }
     var searchText by remember { mutableStateOf("") }
+    var showConfirmationDialog by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(tienda.id) {
@@ -306,7 +300,7 @@ fun ClienteProductosScreen(
     }
 
     LaunchedEffect(productos, cantidades) {
-        total = productos.sumOf { (cantidades[it.id] ?: 0) * it.precio }
+        total = OrderCalculationUtils.calculateSubtotal(productos, cantidades)
     }
 
     BackHandler(onBack = onBack)
@@ -398,7 +392,7 @@ fun ClienteProductosScreen(
         val subtotal = total
         val deliveryFee = FeeUtils.calculateDeliveryFee()
         val serviceFee = FeeUtils.calculateServiceFee()
-        val grandTotal = subtotal + deliveryFee + serviceFee
+        val grandTotal = OrderCalculationUtils.calculateGrandTotal(subtotal, deliveryFee, serviceFee)
         
         Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = Color.White)) {
             Column(Modifier.padding(16.dp)) {
@@ -430,25 +424,9 @@ fun ClienteProductosScreen(
         Button(
             onClick = {
                 val productosSeleccionados = productos.map { it to (cantidades[it.id] ?: 0) }.filter { it.second > 0 }
-                if (productosSeleccionados.isNotEmpty()) {
-                    // Crear pedido en un hilo de corrutina
-                    scope.launch {
-                        val deliveryFee = FeeUtils.calculateDeliveryFee()
-                        val serviceFee = FeeUtils.calculateServiceFee()
-                        val pedido = PedidoEntity(
-                            clienteId = 2, // TODO: usar el id real del usuario logueado
-                            tenderoId = tienda.id,
-                            repartidorId = 3,
-                            productosIds = productosSeleccionados.joinToString(",") { it.first.id.toString() },
-                            estado = "PENDIENTE",
-                            fecha = java.time.LocalDateTime.now().toString(),
-                            tarifaEnvio = deliveryFee,
-                            tarifaServicio = serviceFee
-                        )
-                        repository.db.pedidoDao().insertPedido(pedido)
-                    }
+                if (OrderCalculationUtils.hasValidProductsForOrder(productosSeleccionados)) {
+                    showConfirmationDialog = true
                 }
-                onComprar(productosSeleccionados)
             },
             modifier = Modifier.fillMaxWidth(),
             enabled = hasSelectedProducts
@@ -457,6 +435,38 @@ fun ClienteProductosScreen(
             Spacer(Modifier.width(8.dp))
             Text("Comprar")
         }
+        
+        // Confirmation Dialog
+        val productosSeleccionados = productos.map { it to (cantidades[it.id] ?: 0) }.filter { it.second > 0 }
+        OrderConfirmationDialog(
+            isVisible = showConfirmationDialog,
+            productosSeleccionados = productosSeleccionados,
+            onConfirm = {
+                showConfirmationDialog = false
+                if (OrderCalculationUtils.hasValidProductsForOrder(productosSeleccionados)) {
+                    // Crear pedido en un hilo de corrutina
+                    scope.launch {
+                        val deliveryFee = FeeUtils.calculateDeliveryFee()
+                        val serviceFee = FeeUtils.calculateServiceFee()
+                        val pedido = PedidoEntity(
+                            clienteId = 2, // TODO: usar el id real del usuario logueado
+                            tenderoId = tienda.id,
+                            repartidorId = 3,
+                            productosIds = OrderCalculationUtils.formatProductosIds(productosSeleccionados),
+                            estado = "PENDIENTE",
+                            fecha = java.time.LocalDateTime.now().toString(),
+                            tarifaEnvio = deliveryFee,
+                            tarifaServicio = serviceFee
+                        )
+                        repository.db.pedidoDao().insertPedido(pedido)
+                    }
+                    onComprar(productosSeleccionados)
+                }
+            },
+            onDismiss = {
+                showConfirmationDialog = false
+            }
+        )
     }
 }
 
@@ -474,9 +484,10 @@ fun ClientePedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
         pedido = repository.db.pedidoDao().getPedidoById(pedidoId)
         pedido?.let {
             tienda = repository.db.tiendaDao().getTiendaById(it.tenderoId)
-            val ids = it.productosIds.split(",").mapNotNull { s -> s.toIntOrNull() }
+            val cantidadesMap = OrderCalculationUtils.parseProductosIds(it.productosIds)
+            val ids = cantidadesMap.keys.toList()
             productos = ids.mapNotNull { id -> repository.db.productoDao().getProductoById(id) }
-            cantidades = ids.groupingBy { it }.eachCount()
+            cantidades = cantidadesMap
         }
     }
 
@@ -526,7 +537,7 @@ fun ClientePedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
                     val cantidad = cantidades[producto.id] ?: 1
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                         Text("${producto.nombre} x $cantidad", color = BlackText)
-                        Text("$ ${"%.2f".format(producto.precio * cantidad)}", color = BlackText)
+                        Text(FeeUtils.formatMoney(producto.precio * cantidad), color = BlackText)
                     }
                 }
                 Spacer(Modifier.height(8.dp))
@@ -546,8 +557,8 @@ fun ClientePedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
                 Spacer(Modifier.height(8.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("Total de la compra", fontWeight = FontWeight.Bold, color = BlackText)
-                    val subtotal = productos.sumOf { (cantidades[it.id] ?: 1) * it.precio }
-                    val total = subtotal + pedido!!.tarifaEnvio + pedido!!.tarifaServicio
+                    val subtotal = OrderCalculationUtils.calculateSubtotal(productos, cantidades)
+                    val total = OrderCalculationUtils.calculateGrandTotal(subtotal, pedido!!.tarifaEnvio, pedido!!.tarifaServicio)
                     Text(FeeUtils.formatMoney(total), fontWeight = FontWeight.Bold, color = Primary)
                 }
             }
@@ -600,37 +611,12 @@ fun ClientePedidosScreen(loggedInUser: UserEntity, onPedidoDetalle: (Int) -> Uni
         } else {
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(pedidos) { pedido ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(2.dp)
-                    ) {
-                        Column(Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText, fontSize = 16.sp)
-                                    Text("Estado: ${pedido.estado}", color = Primary, fontWeight = FontWeight.Medium)
-                                    Text("Fecha: ${pedido.fecha}", color = GrayText, fontSize = 12.sp)
-                                }
-                                Icon(Icons.Filled.Assignment, contentDescription = "Pedido", modifier = Modifier.size(32.dp), tint = GrayText)
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            Button(
-                                onClick = { onPedidoDetalle(pedido.id) },
-                                modifier = Modifier.align(Alignment.End),
-                                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = Color.White),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Icon(Icons.Filled.Info, contentDescription = "Ver detalles", modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text("Ver detalles")
-                            }
-                        }
-                    }
+                    OrderCard(
+                        pedido = pedido,
+                        onCardClick = onPedidoDetalle,
+                        showDetailButton = true,
+                        showApproxTotal = false
+                    )
                 }
             }
         }
