@@ -43,6 +43,7 @@ import com.example.deliveryprototype.ui.theme.Primary
 import com.example.deliveryprototype.ui.theme.GrayText
 import com.example.deliveryprototype.ui.components.BackButton
 import com.example.deliveryprototype.ui.components.OrderConfirmationDialog
+import com.example.deliveryprototype.ui.components.OrderCard
 import com.example.deliveryprototype.utils.FeeUtils
 import com.example.deliveryprototype.utils.OrderCalculationUtils
 import kotlinx.coroutines.launch
@@ -167,21 +168,11 @@ fun ClienteHomeScreenNav(loggedInUser: UserEntity) {
             Text("No tienes pedidos recientes.")
         } else {
             pedidos.take(3).forEach { pedido ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText)
-                        Text("Estado: ${pedido.estado}", color = GrayText, fontSize = 14.sp)
-                        Text("Fecha: ${pedido.fecha}", color = GrayText, fontSize = 12.sp)
-                        if (pedido.tarifaEnvio > 0 || pedido.tarifaServicio > 0) {
-                            val subtotalEstimado = 5000.0 // Placeholder estimado
-                            val total = subtotalEstimado + pedido.tarifaEnvio + pedido.tarifaServicio
-                            Text("Total: ${FeeUtils.formatMoney(total)}", color = Primary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                        }
-                    }
-                }
+                OrderCard(
+                    pedido = pedido,
+                    showDetailButton = false,
+                    showApproxTotal = true
+                )
             }
         }
     }
@@ -620,37 +611,12 @@ fun ClientePedidosScreen(loggedInUser: UserEntity, onPedidoDetalle: (Int) -> Uni
         } else {
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
                 items(pedidos) { pedido ->
-                    Card(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(2.dp)
-                    ) {
-                        Column(Modifier.padding(16.dp)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
-                                    Text("Pedido #${pedido.id}", fontWeight = FontWeight.Bold, color = BlackText, fontSize = 16.sp)
-                                    Text("Estado: ${pedido.estado}", color = Primary, fontWeight = FontWeight.Medium)
-                                    Text("Fecha: ${pedido.fecha}", color = GrayText, fontSize = 12.sp)
-                                }
-                                Icon(Icons.Filled.Assignment, contentDescription = "Pedido", modifier = Modifier.size(32.dp), tint = GrayText)
-                            }
-                            Spacer(Modifier.height(8.dp))
-                            Button(
-                                onClick = { onPedidoDetalle(pedido.id) },
-                                modifier = Modifier.align(Alignment.End),
-                                colors = ButtonDefaults.buttonColors(containerColor = Primary, contentColor = Color.White),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Icon(Icons.Filled.Info, contentDescription = "Ver detalles", modifier = Modifier.size(16.dp))
-                                Spacer(Modifier.width(4.dp))
-                                Text("Ver detalles")
-                            }
-                        }
-                    }
+                    OrderCard(
+                        pedido = pedido,
+                        onCardClick = onPedidoDetalle,
+                        showDetailButton = true,
+                        showApproxTotal = false
+                    )
                 }
             }
         }

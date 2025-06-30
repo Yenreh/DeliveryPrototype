@@ -53,7 +53,10 @@ fun ClienteProductosScreen(tiendaId: Int, onComprar: (List<Pair<ProductoEntity, 
                             Text("Precio: $${producto.precio}")
                         }
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { cantidades[producto.id] = (cantidades[producto.id] ?: 0) - 1 }) {
+                            IconButton(onClick = { 
+                                val current = cantidades[producto.id] ?: 0
+                                if (current > 0) cantidades[producto.id] = current - 1
+                            }) {
                                 Text("-")
                             }
                             Text("${cantidades[producto.id] ?: 0}", modifier = Modifier.width(24.dp))

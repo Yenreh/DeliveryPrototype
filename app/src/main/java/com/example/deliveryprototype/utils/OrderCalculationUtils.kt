@@ -45,6 +45,7 @@ object OrderCalculationUtils {
     
     /**
      * Parsea el formato de productos IDs a un mapa de ID -> cantidad
+     * Maneja tanto el formato nuevo "id:cantidad,id:cantidad" como el formato legacy "id,id,id"
      */
     fun parseProductosIds(productosIds: String): Map<Int, Int> {
         if (productosIds.isEmpty()) return emptyMap()
@@ -52,10 +53,17 @@ object OrderCalculationUtils {
         return productosIds.split(",").mapNotNull { item ->
             val parts = item.split(":")
             if (parts.size == 2) {
+                // Formato nuevo: "id:cantidad"
                 val id = parts[0].toIntOrNull()
                 val cantidad = parts[1].toIntOrNull()
                 if (id != null && cantidad != null) {
                     id to cantidad
+                } else null
+            } else if (parts.size == 1) {
+                // Formato legacy: "id" (asumimos cantidad = 1)
+                val id = parts[0].toIntOrNull()
+                if (id != null) {
+                    id to 1
                 } else null
             } else null
         }.toMap()
