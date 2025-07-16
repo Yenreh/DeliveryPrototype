@@ -106,7 +106,7 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
                 )
                 is TenderoScreen.ProductForm -> {
                     // Import the ProductFormScreen from the existing file
-                    com.example.deliveryprototype.ui.ProductFormScreen(
+                    com.example.deliveryprototype.ui.screens.ProductFormScreen(
                         productoId = screen.productoId,
                         onBack = navigateBack,
                         onSave = navigateBack
@@ -114,7 +114,7 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
                 }
                 is TenderoScreen.PedidoDetalle -> {
                     // Import the TenderoPedidoDetalleScreen from the existing file
-                    com.example.deliveryprototype.ui.TenderoPedidoDetalleScreen(
+                    com.example.deliveryprototype.ui.screens.TenderoPedidoDetalleScreen(
                         pedidoId = screen.pedidoId,
                         onBack = navigateBack,
                         onUpdateEstado = { /* Estado actualizado */ }

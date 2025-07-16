@@ -1,4 +1,4 @@
-package com.example.deliveryprototype.ui
+package com.example.deliveryprototype.ui.screens
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
@@ -15,8 +15,7 @@ import com.example.deliveryprototype.model.ProductoEntity
 import kotlinx.coroutines.launch
 
 @Composable
-// Esta función fue renombrada para evitar conflicto con RoleScreens.kt
-fun TenderoScreenContent() {
+fun TenderoBasicScreen() {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
     var productos by remember { mutableStateOf<List<ProductoEntity>>(emptyList()) }
