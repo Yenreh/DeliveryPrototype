@@ -1,6 +1,7 @@
 package com.example.deliveryprototype.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -47,10 +48,7 @@ fun RepartidorHomeScreen(
         pedidosAsignados = repository.db.pedidoDao().getPedidosByRepartidor(repartidorId)
         
         // Cargar pedidos disponibles (sin repartidor asignado)
-        val todosPedidos = repository.db.pedidoDao().getPedidosByTendero(1) // Para el prototipo
-        pedidosDisponibles = todosPedidos.filter { 
-            it.repartidorId == null && it.estado == "PENDIENTE" 
-        }.take(3) // Mostrar máximo 3 pedidos nuevos
+        pedidosDisponibles = repository.db.pedidoDao().getPedidosDisponibles().take(3) // Mostrar máximo 3 pedidos nuevos
     }
 
     // Calcular estadísticas del día
@@ -160,10 +158,7 @@ fun RepartidorHomeScreen(
                             
                             // Recargar listas
                             pedidosAsignados = repository.db.pedidoDao().getPedidosByRepartidor(repartidorId)
-                            val todosPedidos = repository.db.pedidoDao().getPedidosByTendero(1)
-                            pedidosDisponibles = todosPedidos.filter { 
-                                it.repartidorId == null && it.estado == "PENDIENTE" 
-                            }.take(3)
+                            pedidosDisponibles = repository.db.pedidoDao().getPedidosDisponibles().take(3)
                         }
                     },
                     onDetalle = onPedidoDetalle
@@ -265,6 +260,14 @@ fun RepartidorOrderCard(
     onAccept: () -> Unit,
     onDetalle: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+    val repository = remember { AppRepository(context) }
+    var cliente by remember { mutableStateOf<UserEntity?>(null) }
+
+    LaunchedEffect(pedido.clienteId) {
+        cliente = repository.db.userDao().getUserById(pedido.clienteId)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -284,17 +287,17 @@ fun RepartidorOrderCard(
                 Spacer(modifier = Modifier.width(8.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "Ey, *nombre* quiere algo",
+                        "Ey, ${cliente?.name ?: "*nombre"} quiere algo",
                         fontWeight = FontWeight.Medium,
                         color = BlackText
                     )
                     Text(
-                        "Dirección Calle XX # XX - XX",
+                        cliente?.address ?: "Dirección Calle XX # XX - XX",
                         color = GrayText,
                         fontSize = 12.sp
                     )
                     Text(
-                        "Orden recibida a las 11:30 Hrs",
+                        "Orden recibida a las ${pedido.fecha.takeLast(5)}",
                         color = GrayText,
                         fontSize = 12.sp
                     )
@@ -316,8 +319,18 @@ fun RepartidorPendingOrderCard(
     pedido: PedidoEntity,
     onDetalle: (Int) -> Unit
 ) {
+    val context = LocalContext.current
+    val repository = remember { AppRepository(context) }
+    var cliente by remember { mutableStateOf<UserEntity?>(null) }
+
+    LaunchedEffect(pedido.clienteId) {
+        cliente = repository.db.userDao().getUserById(pedido.clienteId)
+    }
+
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onDetalle(pedido.id) },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -337,7 +350,7 @@ fun RepartidorPendingOrderCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        "U",
+                        cliente?.name?.take(1)?.uppercase() ?: "U",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = GrayText
@@ -349,12 +362,12 @@ fun RepartidorPendingOrderCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Pedido de *nombre",
+                    "Pedido de ${cliente?.name ?: "*nombre"}",
                     fontWeight = FontWeight.Bold,
                     color = BlackText
                 )
                 Text(
-                    "Dirección Calle XX # XX - XX",
+                    cliente?.address ?: "Dirección Calle XX # XX - XX",
                     color = GrayText,
                     fontSize = 12.sp
                 )
@@ -369,7 +382,7 @@ fun RepartidorPendingOrderCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        "$ x.xxx",
+                        FeeUtils.formatMoney(pedido.tarifaEnvio),
                         color = GrayText,
                         fontSize = 12.sp
                     )
@@ -384,7 +397,7 @@ fun RepartidorPendingOrderCard(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    "Código-pedido",
+                    "Código-pedido #${pedido.id}",
                     fontWeight = FontWeight.Bold,
                     color = BlackText,
                     fontSize = 14.sp

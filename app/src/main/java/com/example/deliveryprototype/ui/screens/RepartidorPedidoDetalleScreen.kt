@@ -103,7 +103,7 @@ fun RepartidorPedidoDetalleScreen(pedidoId: Int, onBack: () -> Unit) {
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Código-pedido",
+                            "Código-pedido #${pedido!!.id}",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = BlackText
