@@ -35,6 +35,10 @@ class AppRepository(context: Context) {
             pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 1, repartidorId = 3, productosIds = "1:2,2:1", estado = "PENDIENTE", fecha = "2025-06-30 11:00", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
             pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 2, repartidorId = 3, productosIds = "3:3", estado = "EN_CAMINO", fecha = "2025-06-30 11:10", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
             pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 3, repartidorId = 3, productosIds = "4:1", estado = "ENTREGADO", fecha = "2025-06-30 10:30", tarifaEnvio = 2000.0, tarifaServicio = 1000.0))
+            
+            // Pedidos sin asignar para que aparezcan como "nuevos pedidos"
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 1, repartidorId = null, productosIds = "1:3,2:2", estado = "PENDIENTE", fecha = "2025-06-30 12:00", tarifaEnvio = 2500.0, tarifaServicio = 1000.0))
+            pedidoDao.insertPedido(PedidoEntity(clienteId = 2, tenderoId = 2, repartidorId = null, productosIds = "3:1", estado = "PENDIENTE", fecha = "2025-06-30 12:15", tarifaEnvio = 3000.0, tarifaServicio = 1000.0))
         }
     }
 

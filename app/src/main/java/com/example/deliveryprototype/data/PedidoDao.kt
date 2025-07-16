@@ -17,6 +17,9 @@ interface PedidoDao {
     @Query("SELECT * FROM pedidos WHERE repartidorId = :repartidorId")
     suspend fun getPedidosByRepartidor(repartidorId: Int): List<PedidoEntity>
 
+    @Query("SELECT * FROM pedidos WHERE repartidorId IS NULL AND estado = 'PENDIENTE'")
+    suspend fun getPedidosDisponibles(): List<PedidoEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPedido(pedido: PedidoEntity): Long
 

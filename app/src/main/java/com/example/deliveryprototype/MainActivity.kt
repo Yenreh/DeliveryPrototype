@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
                     when (loggedInUser!!.role) {
                         "tendero" -> com.example.deliveryprototype.ui.nav.TenderoNavScaffold(onLogout = onLogout)
                         "cliente" -> com.example.deliveryprototype.ui.nav.ClienteNavScaffold(onLogout = onLogout, loggedInUser = loggedInUser!!)
-                        "repartidor" -> com.example.deliveryprototype.ui.nav.RepartidorNavScaffold(onLogout = onLogout)
+                        "repartidor" -> com.example.deliveryprototype.ui.nav.RepartidorNavScaffold(onLogout = onLogout, loggedInUser = loggedInUser!!)
                     }
                 }
             }
