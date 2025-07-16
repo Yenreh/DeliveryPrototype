@@ -20,6 +20,9 @@ interface PedidoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPedido(pedido: PedidoEntity): Long
 
+    @Query("UPDATE pedidos SET estado = :estado WHERE id = :id")
+    suspend fun updateEstadoPedido(id: Int, estado: String)
+
     @Update
     suspend fun updatePedido(pedido: PedidoEntity)
 

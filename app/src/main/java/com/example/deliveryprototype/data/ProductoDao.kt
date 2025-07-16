@@ -20,6 +20,9 @@ interface ProductoDao {
     @Update
     suspend fun updateProducto(producto: ProductoEntity)
 
+    @Query("DELETE FROM productos WHERE id = :id")
+    suspend fun deleteProducto(id: Int)
+
     @Delete
     suspend fun deleteProducto(producto: ProductoEntity)
 }
