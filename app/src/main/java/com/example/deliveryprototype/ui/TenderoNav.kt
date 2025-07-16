@@ -2,6 +2,7 @@ package com.example.deliveryprototype.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -21,6 +22,7 @@ import com.example.deliveryprototype.ui.components.AppTopBar
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.min
 import com.example.deliveryprototype.data.AppRepository
 import com.example.deliveryprototype.model.PedidoEntity
@@ -204,25 +206,40 @@ fun TenderoHomeScreen(onPedidoDetalle: (Int) -> Unit = {}) {
         )
         Spacer(modifier = Modifier.height(8.dp))
         
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        LazyRow(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            StatsCard(
-                value = pedidosEntregados.toString(),
-                label = "Pedidos\nentregados",
-                modifier = Modifier.padding(4.dp).heightIn(min= 80.dp).width(100.dp)
-            )
-            StatsCard(
-                value = pedidosPendientes.toString(),
-                label = "Pedidos\npendientes",
-                modifier = Modifier.padding(4.dp).heightIn(min= 80.dp).width(100.dp)
-            )
-            StatsCard(
-                value = com.example.deliveryprototype.utils.FeeUtils.formatMoney(gananciasDelDia),
-                label = "Tu plata del día",
-                modifier = Modifier.weight(1f).padding(4.dp).heightIn(min= 80.dp)
-            )
+            item {
+                StatsCard(
+                    value = pedidosEntregados.toString(),
+                    label = "Pedidos\nentregados",
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(100.dp)
+                        .padding(vertical = 4.dp)
+                )
+            }
+            item {
+                StatsCard(
+                    value = pedidosPendientes.toString(),
+                    label = "Pedidos\npendientes",
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(100.dp)
+                        .padding(vertical = 4.dp)
+                )
+            }
+            item {
+                StatsCard(
+                    value = com.example.deliveryprototype.utils.FeeUtils.formatMoney(gananciasDelDia),
+                    label = "Tu plata del día",
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(100.dp)
+                        .padding(vertical = 4.dp)
+                )
+            }
         }
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -312,27 +329,37 @@ fun StatsCard(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment =  Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                value,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Primary,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
-            Text(
-                label,
-                style = MaterialTheme.typography.bodySmall,
-                color = GrayText,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth() // clave aquí también
+            ) {
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Primary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = GrayText,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
+
 
 @Composable
 fun TenderoTiendaScreen(onProductoAdd: () -> Unit = {}, onProductoEdit: (Int) -> Unit = {}) {
