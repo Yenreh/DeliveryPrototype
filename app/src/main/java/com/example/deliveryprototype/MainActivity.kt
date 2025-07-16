@@ -41,7 +41,7 @@ class MainActivity : ComponentActivity() {
                 }
 
                 if (loggedInUser == null) {
-                    com.example.deliveryprototype.ui.LoginScreen(
+                    com.example.deliveryprototype.ui.screens.LoginScreen(
                         onLogin = { username, password ->
                             // Validar usuario y contraseña usando la base de datos
                             val user = runBlocking {
@@ -63,9 +63,9 @@ class MainActivity : ComponentActivity() {
                         sharedPrefs.edit().remove("user_id").apply()
                     }
                     when (loggedInUser!!.role) {
-                        "tendero" -> com.example.deliveryprototype.ui.TenderoNavScaffold(onLogout = onLogout)
-                        "cliente" -> com.example.deliveryprototype.ui.ClienteNavScaffold(onLogout = onLogout, loggedInUser = loggedInUser!!)
-                        "repartidor" -> com.example.deliveryprototype.ui.RepartidorNavScaffold(onLogout = onLogout)
+                        "tendero" -> com.example.deliveryprototype.ui.nav.TenderoNavScaffold(onLogout = onLogout)
+                        "cliente" -> com.example.deliveryprototype.ui.nav.ClienteNavScaffold(onLogout = onLogout, loggedInUser = loggedInUser!!)
+                        "repartidor" -> com.example.deliveryprototype.ui.nav.RepartidorNavScaffold(onLogout = onLogout)
                     }
                 }
             }
@@ -78,6 +78,6 @@ class MainActivity : ComponentActivity() {
 fun GreetingPreview() {
     DeliveryPrototypeTheme {
         // Vista previa del login
-        com.example.deliveryprototype.ui.LoginScreen(onLogin = { _, _ -> }, error = null)
+        com.example.deliveryprototype.ui.screens.LoginScreen(onLogin = { _, _ -> }, error = null)
     }
 }

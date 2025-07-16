@@ -1,4 +1,4 @@
-package com.example.deliveryprototype.ui
+package com.example.deliveryprototype.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 // Esta función fue renombrada para evitar conflicto con RoleScreens.kt
 @Composable
-fun RepartidorScreenContent() {
+fun RepartidorBasicScreen() {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
     val pedidos = remember { mutableStateListOf<PedidoEntity>() }

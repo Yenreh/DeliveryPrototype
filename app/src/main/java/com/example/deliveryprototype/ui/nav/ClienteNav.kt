@@ -1,33 +1,21 @@
-package com.example.deliveryprototype.ui
+package com.example.deliveryprototype.ui.nav
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Assignment
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Storefront
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Modifier
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.platform.LocalContext
-import com.example.deliveryprototype.data.AppRepository
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.deliveryprototype.model.ProductoEntity
 import com.example.deliveryprototype.model.TiendaEntity
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import com.example.deliveryprototype.ui.components.LogoutButton
+import com.example.deliveryprototype.model.UserEntity
 import com.example.deliveryprototype.ui.components.AppTopBar
+import com.example.deliveryprototype.ui.components.LogoutButton
+import com.example.deliveryprototype.ui.screens.*
 
 sealed class ClienteNavItem(val label: String, val icon: ImageVector) {
     object Tiendas : ClienteNavItem("Tiendas", Icons.Filled.Storefront)
@@ -37,16 +25,16 @@ sealed class ClienteNavItem(val label: String, val icon: ImageVector) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryprototype.model.UserEntity) {
+fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: UserEntity) {
     var selectedIndex by remember { mutableStateOf(1) }
     val items = listOf(
         ClienteNavItem.Tiendas,
         ClienteNavItem.Home,
         ClienteNavItem.Pedidos
     )
-    var tiendaSeleccionada by remember { mutableStateOf<com.example.deliveryprototype.model.TiendaEntity?>(null) }
+    var tiendaSeleccionada by remember { mutableStateOf<TiendaEntity?>(null) }
     var mostrarProductos by remember { mutableStateOf(false) }
-    var productosSeleccionados by remember { mutableStateOf<List<Pair<com.example.deliveryprototype.model.ProductoEntity, Int>>>(emptyList()) }
+    var productosSeleccionados by remember { mutableStateOf<List<Pair<ProductoEntity, Int>>>(emptyList()) }
     var pedidoDetalleId by remember { mutableStateOf<Int?>(null) }
     var productoDetalleId by remember { mutableStateOf<Int?>(null) }
 
@@ -98,11 +86,11 @@ fun ClienteNavScaffold(onLogout: () -> Unit, loggedInUser: com.example.deliveryp
                         onProductoDetalle = { productoId -> productoDetalleId = productoId },
                         onBack = { mostrarProductos = false }
                     )
-                selectedIndex == 0 -> ClienteTiendasScreenNav(onTiendaClick = { tienda ->
+                selectedIndex == 0 -> ClienteTiendasScreen(onTiendaClick = { tienda ->
                     tiendaSeleccionada = tienda
                     mostrarProductos = true
                 })
-                selectedIndex == 1 -> ClienteHomeScreenNav(
+                selectedIndex == 1 -> ClienteHomeScreen(
                     loggedInUser = loggedInUser,
                     onPedidoDetalle = { pedidoId -> pedidoDetalleId = pedidoId }
                 )

@@ -1,4 +1,4 @@
-package com.example.deliveryprototype.ui
+package com.example.deliveryprototype.ui.screens
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -29,17 +29,17 @@ fun RoleSelectionScreen(onRoleSelected: (String) -> Unit) {
 @Composable
 fun TenderoScreenWrapper() {
     // Llama a la función renombrada
-    TenderoScreenContent()
+    TenderoBasicScreen()
 }
 
 @Composable
 fun ClienteScreen() {
     // Llama a la función renombrada
-    ClienteScreenContent()
+    ClienteBasicScreen()
 }
 
 @Composable
 fun RepartidorScreen() {
     // Llama a la función renombrada
-    RepartidorScreenContent()
+    RepartidorBasicScreen()
 }
