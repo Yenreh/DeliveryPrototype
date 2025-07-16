@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import com.example.deliveryprototype.ui.components.LogoutButton
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -61,9 +62,7 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
             TopAppBar(
                 title = { Text("Panel Tendero") },
                 actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Filled.Logout, contentDescription = "Cerrar sesión")
-                    }
+                    LogoutButton(onClick = onLogout)
                 }
             )
         },
@@ -337,16 +336,11 @@ fun TenderoTiendaScreen(onProductoAdd: () -> Unit = {}, onProductoEdit: (Int) ->
     val repository = remember { AppRepository(context) }
     var productos by remember { mutableStateOf<List<ProductoEntity>>(emptyList()) }
     var tienda by remember { mutableStateOf<TiendaEntity?>(null) }
-    var isLoaded by remember { mutableStateOf(false) }
-    
     LaunchedEffect(Unit) {
-        if (!isLoaded) {
-            productos = repository.db.productoDao().getProductosByTendero(1)
-            tienda = repository.db.tiendaDao().getTiendaById(1)
-            isLoaded = true
-        }
+        productos = repository.db.productoDao().getProductosByTendero(1)
+        tienda = repository.db.tiendaDao().getTiendaById(1)
     }
-    
+
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
@@ -360,22 +354,22 @@ fun TenderoTiendaScreen(onProductoAdd: () -> Unit = {}, onProductoEdit: (Int) ->
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Filled.Storefront, 
+                    Icons.Filled.Storefront,
                     contentDescription = "Tienda",
                     modifier = Modifier.size(32.dp),
                     tint = Primary
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    tienda?.nombre ?: "Mi Comercio", 
+                    tienda?.nombre ?: "Mi Comercio",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Productos header con botón agregar
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -400,9 +394,9 @@ fun TenderoTiendaScreen(onProductoAdd: () -> Unit = {}, onProductoEdit: (Int) ->
                 Text("Agregar")
             }
         }
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         // Lista de productos
         if (productos.isEmpty()) {
             Card(

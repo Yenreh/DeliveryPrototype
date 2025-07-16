@@ -2,7 +2,7 @@ package com.example.deliveryprototype.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Logout
+import com.example.deliveryprototype.ui.components.LogoutButton
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -25,9 +25,7 @@ fun RepartidorNavScaffold(onLogout: () -> Unit) {
             TopAppBar(
                 title = { Text("Panel Repartidor") },
                 actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Filled.Logout, contentDescription = "Cerrar sesión")
-                    }
+                   LogoutButton(onClick = onLogout)
                 }
             )
         },

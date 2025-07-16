@@ -19,18 +19,10 @@ import kotlinx.coroutines.launch
 fun TenderoScreenContent() {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
-    val productos = remember { mutableStateListOf<ProductoEntity>() }
-    val scope = rememberCoroutineScope()
-    var isLoaded by remember { mutableStateOf(false) }
+    var productos by remember { mutableStateOf<List<ProductoEntity>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        if (!isLoaded) {
-            // Para el prototipo, se asume que el tendero tiene id 1
-            val list = repository.db.productoDao().getProductosByTendero(1)
-            productos.clear()
-            productos.addAll(list)
-            isLoaded = true
-        }
+        productos = repository.db.productoDao().getProductosByTendero(1)
     }
 
     Column(
@@ -39,17 +31,21 @@ fun TenderoScreenContent() {
     ) {
         Text("Mis Productos", style = MaterialTheme.typography.titleLarge)
         Spacer(modifier = Modifier.height(16.dp))
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(productos) { producto ->
-                Card(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    elevation = CardDefaults.cardElevation(2.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
-                        Text(producto.descripcion)
-                        Text("Precio: $${producto.precio}")
-                        Text("Stock: ${producto.stock}")
+        if (productos.isEmpty()) {
+            Text("No tienes productos.", color = MaterialTheme.colorScheme.onSurface)
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                items(productos) { producto ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        elevation = CardDefaults.cardElevation(2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(producto.nombre, style = MaterialTheme.typography.titleMedium)
+                            Text(producto.descripcion)
+                            Text("Precio: $${producto.precio}")
+                            Text("Stock: ${producto.stock}")
+                        }
                     }
                 }
             }
