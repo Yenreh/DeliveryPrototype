@@ -198,7 +198,7 @@ fun RepartidorHomeScreen(
             }
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp),
+                modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(pedidosPendientesAsignados) { pedido ->
