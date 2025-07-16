@@ -21,6 +21,7 @@ import com.example.deliveryprototype.ui.components.AppTopBar
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.min
 import com.example.deliveryprototype.data.AppRepository
 import com.example.deliveryprototype.model.PedidoEntity
 import com.example.deliveryprototype.model.ProductoEntity
@@ -38,8 +39,8 @@ sealed class TenderoNavItem(val label: String, val icon: ImageVector) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TenderoNavScaffold(onLogout: () -> Unit) {
-    var selectedIndex by remember { mutableStateOf(1) }
-    var currentScreen by remember { mutableStateOf<TenderoScreen>(TenderoScreen.Home) }
+var selectedIndex by remember { mutableStateOf(1) }
+val currentScreen = remember { mutableStateOf<TenderoScreen>(TenderoScreen.Home) }
     
     val items = listOf(
         TenderoNavItem.Tienda,
@@ -49,12 +50,12 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
     
     // Función para navegar entre pantallas
     val navigateToScreen = { screen: TenderoScreen ->
-        currentScreen = screen
+        currentScreen.value = screen
     }
     
     // Función para regresar al home
     val navigateBack = {
-        currentScreen = TenderoScreen.Home
+        currentScreen.value = TenderoScreen.Home
         selectedIndex = 1
     }
     
@@ -69,19 +70,19 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
         },
         bottomBar = {
             // Solo mostrar bottom bar en las pantallas principales
-            if (currentScreen in listOf(TenderoScreen.Home, TenderoScreen.Tienda, TenderoScreen.Pedidos)) {
+            if (currentScreen.value in listOf(TenderoScreen.Home, TenderoScreen.Tienda, TenderoScreen.Pedidos)) {
                 NavigationBar {
                     items.forEachIndexed { index, item ->
                         NavigationBarItem(
                             selected = selectedIndex == index,
                             onClick = { 
-                                selectedIndex = index
-                                currentScreen = when (index) {
-                                    0 -> TenderoScreen.Tienda
-                                    1 -> TenderoScreen.Home
-                                    2 -> TenderoScreen.Pedidos
-                                    else -> TenderoScreen.Home
-                                }
+                            selectedIndex = index
+                            currentScreen.value = when (index) {
+                                0 -> TenderoScreen.Tienda
+                                1 -> TenderoScreen.Home
+                                2 -> TenderoScreen.Pedidos
+                                else -> TenderoScreen.Home
+                            }
                             },
                             icon = { Icon(item.icon, contentDescription = item.label) },
                             label = { Text(item.label) }
@@ -92,32 +93,32 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            when (currentScreen) {
+            when (val screen = currentScreen.value) {
                 is TenderoScreen.Home -> TenderoHomeScreen(
                     onPedidoDetalle = { pedidoId ->
-                        currentScreen = TenderoScreen.PedidoDetalle(pedidoId)
+                        currentScreen.value = TenderoScreen.PedidoDetalle(pedidoId)
                     }
                 )
                 is TenderoScreen.Tienda -> TenderoTiendaScreen(
                     onProductoAdd = {
-                        currentScreen = TenderoScreen.ProductForm(null)
+                        currentScreen.value = TenderoScreen.ProductForm(null)
                     },
                     onProductoEdit = { productoId ->
-                        currentScreen = TenderoScreen.ProductForm(productoId)
+                        currentScreen.value = TenderoScreen.ProductForm(productoId)
                     }
                 )
                 is TenderoScreen.Pedidos -> TenderoPedidosScreen(
                     onPedidoDetalle = { pedidoId ->
-                        currentScreen = TenderoScreen.PedidoDetalle(pedidoId)
+                        currentScreen.value = TenderoScreen.PedidoDetalle(pedidoId)
                     }
                 )
                 is TenderoScreen.ProductForm -> ProductFormScreen(
-                    productoId = currentScreen.productoId,
+                    productoId = screen.productoId,
                     onBack = navigateBack,
                     onSave = navigateBack
                 )
                 is TenderoScreen.PedidoDetalle -> TenderoPedidoDetalleScreen(
-                    pedidoId = currentScreen.pedidoId,
+                    pedidoId = screen.pedidoId,
                     onBack = navigateBack,
                     onUpdateEstado = { /* Estado actualizado */ }
                 )
@@ -210,17 +211,17 @@ fun TenderoHomeScreen(onPedidoDetalle: (Int) -> Unit = {}) {
             StatsCard(
                 value = pedidosEntregados.toString(),
                 label = "Pedidos\nentregados",
-                modifier = Modifier.weight(1f).padding(4.dp)
+                modifier = Modifier.padding(4.dp).heightIn(min= 80.dp).width(100.dp)
             )
             StatsCard(
                 value = pedidosPendientes.toString(),
-                label = "Pedidos\npendientes", 
-                modifier = Modifier.weight(1f).padding(4.dp)
+                label = "Pedidos\npendientes",
+                modifier = Modifier.padding(4.dp).heightIn(min= 80.dp).width(100.dp)
             )
             StatsCard(
                 value = com.example.deliveryprototype.utils.FeeUtils.formatMoney(gananciasDelDia),
                 label = "Tu plata del día",
-                modifier = Modifier.weight(1f).padding(4.dp)
+                modifier = Modifier.weight(1f).padding(4.dp).heightIn(min= 80.dp)
             )
         }
         
@@ -285,7 +286,7 @@ fun TenderoHomeScreen(onPedidoDetalle: (Int) -> Unit = {}) {
             Text("No hay pedidos recientes.", color = GrayText)
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxWidth().heightIn(max = 300.dp)
+                modifier = Modifier.fillMaxWidth().heightIn(max = 600.dp)
             ) {
                 items(pedidos.takeLast(5).reversed()) { pedido ->
                     OrderCard(
@@ -313,13 +314,15 @@ fun StatsCard(
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment =  Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 value,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Primary
+                color = Primary,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
             Text(
                 label,
