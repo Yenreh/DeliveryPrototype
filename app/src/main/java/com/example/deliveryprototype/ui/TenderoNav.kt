@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import com.example.deliveryprototype.ui.components.LogoutButton
+import com.example.deliveryprototype.ui.components.AppTopBar
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -59,8 +60,8 @@ fun TenderoNavScaffold(onLogout: () -> Unit) {
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Panel Tendero") },
+            AppTopBar(
+                title = "Panel Tendero",
                 actions = {
                     LogoutButton(onClick = onLogout)
                 }

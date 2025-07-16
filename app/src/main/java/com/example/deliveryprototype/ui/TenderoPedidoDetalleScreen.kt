@@ -41,6 +41,27 @@ fun TenderoPedidoDetalleScreen(
 ) {
     val context = LocalContext.current
     val repository = remember { AppRepository(context) }
+    var pedido by remember { mutableStateOf<PedidoEntity?>(null) }
+    var productos by remember { mutableStateOf<List<ProductoEntity>>(emptyList()) }
+    var cantidades by remember { mutableStateOf<Map<Int, Int>>(emptyMap()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var tienda by remember { mutableStateOf<TiendaEntity?>(null) }
+    var cliente by remember { mutableStateOf<UserEntity?>(null) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(pedidoId) {
+        pedido = repository.db.pedidoDao().getPedidoById(pedidoId)
+        pedido?.let { pedidoEntity ->
+            tienda = repository.db.tiendaDao().getTiendaById(pedidoEntity.tenderoId)
+            cliente = repository.db.userDao().getUserById(pedidoEntity.clienteId)
+            val cantidadesMap = OrderCalculationUtils.parseProductosIds(pedidoEntity.productosIds)
+            val ids = cantidadesMap.keys.toList()
+            productos = ids.mapNotNull { id -> repository.db.productoDao().getProductoById(id) }
+            cantidades = cantidadesMap
+        }
+        isLoading = false
+    }
+
     if (isLoading) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator()
@@ -73,21 +94,89 @@ fun TenderoPedidoDetalleScreen(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        // ...existing code for cards and details...
-    }
-                                },
-                                modifier = Modifier.weight(1f),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                            ) {
-                                Text("Marcar entregado")
-                            }
+        
+        // Header del pedido
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    "Código-pedido: #${pedido!!.id}",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    fontSize = 18.sp
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text("Cliente: ${cliente?.name ?: "Usuario #${pedido!!.clienteId}"}", color = Color.Black)
+                Text("Dirección: ${cliente?.address ?: "Sin dirección"}", color = GrayText)
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Storefront,
+                        contentDescription = "Tienda",
+                        modifier = Modifier.size(32.dp),
+                        tint = Primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Tienda: ${tienda?.nombre ?: "Mi tienda"}",
+                        color = Color.Black,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Estado del pedido
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Color.White)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    "ESTADO DEL PEDIDO",
+                    fontWeight = FontWeight.Bold,
+                    color = GrayText,
+                    fontSize = 12.sp
+                )
+                Text(
+                    pedido!!.estado,
+                    fontWeight = FontWeight.Bold,
+                    color = Primary,
+                    fontSize = 16.sp
+                )
+                Text("Fecha: ${pedido!!.fecha}", color = GrayText, fontSize = 12.sp)
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                // Botones de acción solo si el pedido está pendiente o en camino
+                if (pedido!!.estado in listOf("PENDIENTE", "EN_CAMINO")) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = { 
+                                scope.launch {
+                                    repository.db.pedidoDao().updateEstadoPedido(pedidoId, "ENTREGADO")
+                                    onUpdateEstado?.invoke("ENTREGADO")
+                                    pedido = pedido!!.copy(estado = "ENTREGADO")
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
+                        ) {
+                            Text("Marcar entregado")
                         }
                         
                         OutlinedButton(
                             onClick = { 
                                 scope.launch {
                                     repository.db.pedidoDao().updateEstadoPedido(pedidoId, "CANCELADO")
-                                    onUpdateEstado("CANCELADO")
+                                    onUpdateEstado?.invoke("CANCELADO")
                                     pedido = pedido!!.copy(estado = "CANCELADO")
                                 }
                             },
