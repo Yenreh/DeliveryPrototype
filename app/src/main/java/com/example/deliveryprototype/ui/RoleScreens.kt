@@ -27,7 +27,7 @@ fun RoleSelectionScreen(onRoleSelected: (String) -> Unit) {
 }
 
 @Composable
-fun TenderoScreen() {
+fun TenderoScreenWrapper() {
     // Llama a la función renombrada
     TenderoScreenContent()
 }
