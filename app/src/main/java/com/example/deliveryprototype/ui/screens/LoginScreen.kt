@@ -1,5 +1,6 @@
 package com.example.deliveryprototype.ui.screens
 
+import com.example.deliveryprototype.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -40,9 +41,13 @@ fun LoginScreen(onLogin: (String, String) -> Unit, error: String?) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(Modifier.height(16.dp))
-            Icon(Icons.Filled.Person, contentDescription = null, tint = GrayText, modifier = Modifier.size(64.dp))
+            Image(
+                painter = painterResource(id = R.mipmap.mi_veci_logo_foreground),
+                contentDescription = "Logo Mi Veci",
+                modifier = Modifier.size(64.dp)
+            )
             Spacer(Modifier.height(8.dp))
-            Text("Nombre Empresa", color = BlackText, fontSize = 20.sp)
+            Text("MiVeci", color = BlackText, fontSize = 20.sp)
             Spacer(Modifier.height(24.dp))
             OutlinedTextField(
                 value = username,
