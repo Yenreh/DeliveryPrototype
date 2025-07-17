@@ -77,6 +77,7 @@ fun LoginScreen(onLogin: (String, String) -> Unit, error: String?) {
             Spacer(modifier = Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Recordar usuario", color = GrayText)
+                Spacer(modifier = Modifier.width(10.dp))
                 Switch(checked = rememberUser, onCheckedChange = { rememberUser = it }, colors = SwitchDefaults.colors(checkedThumbColor = Primary))
             }
             Spacer(modifier = Modifier.height(16.dp))
